@@ -1,6 +1,6 @@
 'use client';
 
-import { Car } from "../lib/car";
+import { Car } from "../types/car";
 
 export default function FilterSelection({
     cars,

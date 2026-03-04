@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { Car, parseCsv } from "../lib/car";
+import { Car, parseJson } from "../types/car";
 import FilterSelection from "./filter-selection";
-import { cleanSelection } from "../lib/filter";
+import { cleanSelection } from "../types/filter";
 
 function CarCard({ car }: { car: Car }) {
   return (
@@ -11,7 +11,7 @@ function CarCard({ car }: { car: Car }) {
       <h2 className="text-base font-semibold">{car.make}</h2>
       <p className="text-sm text-zinc-500">{car.model}</p>
       <p className="mt-1 text-zinc-500">{car.year}</p>
-      <p className="mt-2 text-sm">Rating: {car.rating} / 5</p>
+      <p className="mt-2 text-sm">Rating: {car.deal_rating}</p>
     </div>
   );
 }
