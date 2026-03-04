@@ -1,24 +1,9 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-
-interface Car {
-  make: string;
-  model: string;
-  year: string;
-  rating: string;
-}
-
-function parseCsv(text: string): Car[] {
-  const lines = text.trim().split("\n");
-  const headers = lines[0].split(",");
-  return lines.slice(1).map((line) => {
-    const values = line.split(",");
-    const obj: Record<string, string> = {};
-    headers.forEach((h, i) => (obj[h.trim()] = values[i]?.trim() ?? ""));
-    return obj as unknown as Car;
-  });
-}
+import { Car, parseCsv } from "../lib/car";
+import FilterSelection from "./filter-selection";
+import { cleanSelection } from "../lib/filter";
 
 function CarCard({ car }: { car: Car }) {
   return (
@@ -34,6 +19,7 @@ function CarCard({ car }: { car: Car }) {
 export default function Home() {
   const [cars, setCars] = useState<Car[]>([]);
   const [query, setQuery] = useState("");
+  const [selections, setSelections] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetch("/cars.csv")
@@ -68,11 +54,13 @@ export default function Home() {
         className="mb-6 w-full max-w-2xl shrink-0 rounded-lg border border-zinc-200 px-4 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600"
       />
 
+      <FilterSelection cars={cars} selections={selections} onSelectionChange={setSelections} />
+
       <div className="overflow-y-auto flex-1 w-full max-w-2xl">
 
         {/* This div contains the list of cars that will be filtered, and the parameters within map represent the index and type of car*/}
         <div className="grid grid-cols-2 gap-3">
-          {filtered.map((car, i) => (
+          {cleanSelection(filtered, selections).map((car, i) => (
             <CarCard key={i} car={car} />
           ))}
         </div>
