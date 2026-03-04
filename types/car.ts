@@ -16,4 +16,5 @@ export interface Car {
   sellingprice: number;
   saledate: string;
   deal_rating: "Great Deal" | "Good Price" | "Fair Market";
+  image?: string;
 }
