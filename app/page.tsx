@@ -3,11 +3,21 @@
 import { useEffect, useState, useMemo } from "react";
 import { Car, parseJson } from "../types/car";
 import FilterSelection from "./filter-selection";
+import Image from "next/image";
 import { cleanSelection } from "../types/filter";
 
 function CarCard({ car }: { car: Car }) {
   return (
     <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+      <div className="relative mb-3 h-36 w-full overflow-hidden rounded-md">
+        <Image
+          src={car.image?.trim() || "/cars/placeholder.svg"}
+          alt={`${car.make} ${car.model}`}
+          fill
+          sizes="(max-width: 768px) 100vw, 50vw"
+          className="object-cover"
+        />
+      </div>
       <h2 className="text-base font-semibold">{car.make}</h2>
       <p className="text-sm text-zinc-500">{car.model}</p>
       <p className="mt-1 text-zinc-500">{car.year}</p>
@@ -22,9 +32,9 @@ export default function Home() {
   const [selections, setSelections] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    fetch("/cars.csv")
-      .then((res) => res.text())
-      .then((text) => setCars(parseCsv(text)));
+    fetch("/cleaned_cars.json")
+      .then((res) => res.json())
+      .then((data) => setCars(parseJson(data)));
   }, []);
 
   // useMemo, the filtering is skipped unless an actual input is changed (if cars or query is changed)
@@ -36,9 +46,9 @@ export default function Home() {
     // If the query is empty, just return the full list (normal state)
     if (!q) return cars;
 
-    // This returns the cars that include some sort of your query within the haystack: (ex. haystack = "toyota camry 4.5 2025" & q = "toy", this will return the car)
+    // This returns cars that include the query across common searchable fields.
     return cars.filter((car) => {
-      const haystack = `${car.make} ${car.model} ${car.rating} ${car.year}`.toLowerCase();
+      const haystack = `${car.make} ${car.model} ${car.deal_rating} ${car.year} ${car.body}`.toLowerCase();
       return haystack.includes(q)
     })
   }, [cars, query])
