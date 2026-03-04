@@ -1,38 +1,10 @@
 "use client";
 
+import { useEffect, useState, useMemo } from "react";
+import { Car, parseJson } from "../types/car";
+import FilterSelection from "./filter-selection";
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
-import type { Car } from "../types/car";
-
-function parseJson(data: unknown): Car[] {
-  if (!Array.isArray(data)) return [];
-
-  return data.map((item) => {
-    const car = item as Record<string, unknown>;
-    return {
-      year: Number(car.year ?? 0),
-      make: String(car.make ?? ""),
-      model: String(car.model ?? ""),
-      trim: car.trim != null ? String(car.trim) : null,
-      body: String(car.body ?? ""),
-      transmission: car.transmission != null ? String(car.transmission) : null,
-      vin: String(car.vin ?? ""),
-      state: String(car.state ?? ""),
-      condition: car.condition != null ? Number(car.condition) : null,
-      odometer: Number(car.odometer ?? 0),
-      color: String(car.color ?? ""),
-      interior: String(car.interior ?? ""),
-      seller: String(car.seller ?? ""),
-      mmr: Number(car.mmr ?? 0),
-      sellingprice: Number(car.sellingprice ?? 0),
-      saledate: String(car.saledate ?? ""),
-      deal_rating:
-        car.deal_rating === "Great Deal" || car.deal_rating === "Good Price" || car.deal_rating === "Fair Market"
-          ? car.deal_rating
-          : "Fair Market",
-    };
-  });
-}
+import { cleanSelection } from "../types/filter";
 
 function CarCard({ car }: { car: Car }) {
   return (
@@ -57,6 +29,7 @@ function CarCard({ car }: { car: Car }) {
 export default function Home() {
   const [cars, setCars] = useState<Car[]>([]);
   const [query, setQuery] = useState("");
+  const [selections, setSelections] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetch("/cleaned_cars.json")
@@ -91,11 +64,13 @@ export default function Home() {
         className="mb-6 w-full max-w-2xl shrink-0 rounded-lg border border-zinc-200 px-4 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600"
       />
 
+      <FilterSelection cars={cars} selections={selections} onSelectionChange={setSelections} />
+
       <div className="overflow-y-auto flex-1 w-full max-w-2xl">
 
         {/* This div contains the list of cars that will be filtered, and the parameters within map represent the index and type of car*/}
         <div className="grid grid-cols-2 gap-3">
-          {filtered.map((car, i) => (
+          {cleanSelection(filtered, selections).map((car, i) => (
             <CarCard key={i} car={car} />
           ))}
         </div>
