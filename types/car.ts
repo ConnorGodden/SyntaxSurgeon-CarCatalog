@@ -19,27 +19,31 @@ export interface Car {
   image?: string;
 }
 
-export function parseJson(data: unknown): Car[] {
-  if (!Array.isArray(data)) return [];
-  return data.map((item) => {
-    const car = item as Record<string, unknown>;
+export function parseCsv(text: string): Car[] {
+  const lines = text.trim().split("\n");
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(",");
+  return lines.slice(1).map((line) => {
+    const values = line.split(",");
+    const car: Record<string, string> = {};
+    headers.forEach((h, i) => (car[h.trim()] = values[i]?.trim() ?? ""));
     return {
-      year: Number(car.year ?? 0),
-      make: String(car.make ?? ""),
-      model: String(car.model ?? ""),
-      trim: car.trim != null ? String(car.trim) : null,
-      body: String(car.body ?? ""),
-      transmission: car.transmission != null ? String(car.transmission) : null,
-      vin: String(car.vin ?? ""),
-      state: String(car.state ?? ""),
-      condition: car.condition != null ? Number(car.condition) : null,
-      odometer: Number(car.odometer ?? 0),
-      color: String(car.color ?? ""),
-      interior: String(car.interior ?? ""),
-      seller: String(car.seller ?? ""),
-      mmr: Number(car.mmr ?? 0),
-      sellingprice: Number(car.sellingprice ?? 0),
-      saledate: String(car.saledate ?? ""),
+      year: Number(car.year || 0),
+      make: car.make ?? "",
+      model: car.model ?? "",
+      trim: car.trim !== "" ? car.trim : null,
+      body: car.body ?? "",
+      transmission: car.transmission !== "" ? car.transmission : null,
+      vin: car.vin ?? "",
+      state: car.state ?? "",
+      condition: car.condition !== "" ? Number(car.condition) : null,
+      odometer: Number(car.odometer || 0),
+      color: car.color ?? "",
+      interior: car.interior ?? "",
+      seller: car.seller ?? "",
+      mmr: Number(car.mmr || 0),
+      sellingprice: Number(car.sellingprice || 0),
+      saledate: car.saledate ?? "",
       deal_rating:
         car.deal_rating === "Great Deal" || car.deal_rating === "Good Price" || car.deal_rating === "Fair Market"
           ? car.deal_rating
