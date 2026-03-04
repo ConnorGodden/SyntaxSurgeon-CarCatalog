@@ -2,23 +2,35 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
+import type { Car } from "../types/car";
 
-interface Car {
-  make: string;
-  model: string;
-  year: string;
-  rating: string;
-  image?: string;
-}
+function parseJson(data: unknown): Car[] {
+  if (!Array.isArray(data)) return [];
 
-function parseCsv(text: string): Car[] {
-  const lines = text.trim().split("\n");
-  const headers = lines[0].split(",");
-  return lines.slice(1).map((line) => {
-    const values = line.split(",");
-    const obj: Record<string, string> = {};
-    headers.forEach((h, i) => (obj[h.trim()] = values[i]?.trim() ?? ""));
-    return obj as unknown as Car;
+  return data.map((item) => {
+    const car = item as Record<string, unknown>;
+    return {
+      year: Number(car.year ?? 0),
+      make: String(car.make ?? ""),
+      model: String(car.model ?? ""),
+      trim: car.trim != null ? String(car.trim) : null,
+      body: String(car.body ?? ""),
+      transmission: car.transmission != null ? String(car.transmission) : null,
+      vin: String(car.vin ?? ""),
+      state: String(car.state ?? ""),
+      condition: car.condition != null ? Number(car.condition) : null,
+      odometer: Number(car.odometer ?? 0),
+      color: String(car.color ?? ""),
+      interior: String(car.interior ?? ""),
+      seller: String(car.seller ?? ""),
+      mmr: Number(car.mmr ?? 0),
+      sellingprice: Number(car.sellingprice ?? 0),
+      saledate: String(car.saledate ?? ""),
+      deal_rating:
+        car.deal_rating === "Great Deal" || car.deal_rating === "Good Price" || car.deal_rating === "Fair Market"
+          ? car.deal_rating
+          : "Fair Market",
+    };
   });
 }
 
@@ -37,7 +49,7 @@ function CarCard({ car }: { car: Car }) {
       <h2 className="text-base font-semibold">{car.make}</h2>
       <p className="text-sm text-zinc-500">{car.model}</p>
       <p className="mt-1 text-zinc-500">{car.year}</p>
-      <p className="mt-2 text-sm">Rating: {car.rating} / 5</p>
+      <p className="mt-2 text-sm">Rating: {car.deal_rating}</p>
     </div>
   );
 }
@@ -47,9 +59,9 @@ export default function Home() {
   const [query, setQuery] = useState("");
 
   useEffect(() => {
-    fetch("/cars.csv")
-      .then((res) => res.text())
-      .then((text) => setCars(parseCsv(text)));
+    fetch("/cleaned_cars.json")
+      .then((res) => res.json())
+      .then((data) => setCars(parseJson(data)));
   }, []);
 
   // useMemo, the filtering is skipped unless an actual input is changed (if cars or query is changed)
@@ -61,9 +73,9 @@ export default function Home() {
     // If the query is empty, just return the full list (normal state)
     if (!q) return cars;
 
-    // This returns the cars that include some sort of your query within the haystack: (ex. haystack = "toyota camry 4.5 2025" & q = "toy", this will return the car)
+    // This returns cars that include the query across common searchable fields.
     return cars.filter((car) => {
-      const haystack = `${car.make} ${car.model} ${car.rating} ${car.year}`.toLowerCase();
+      const haystack = `${car.make} ${car.model} ${car.deal_rating} ${car.year} ${car.body}`.toLowerCase();
       return haystack.includes(q)
     })
   }, [cars, query])
