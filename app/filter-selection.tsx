@@ -11,7 +11,7 @@ export default function FilterSelection({
     selections: Record<string, string>;
     onSelectionChange: (next: Record<string, string>) => void;
 }) {
-    const filterOptions = ["make", "model", "year", "trim", "body", "transmission", "condition", "color", "deal_rating", ""] as const;
+    const filterOptions = ["make", "year", "body", "transmission", "condition", "color", "deal_rating", ""] as const;
     const uniqueValues = (option: keyof Car) => Array.from(new Set(cars.map((car) => String(car[option]))));
 
     return (
