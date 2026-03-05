@@ -7,7 +7,7 @@ export interface Car {
   transmission: string | null;
   vin: string;
   state: string;
-  condition: number | null;
+  condition: string | number | null;
   odometer: number;
   color: string;
   interior: string;
