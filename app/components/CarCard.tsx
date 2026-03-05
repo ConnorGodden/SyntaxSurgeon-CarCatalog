@@ -3,13 +3,13 @@ import Image from "next/image";
 
 export default function CarCard({ car }: { car: Car }) {
     return (
-      <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+      <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800 w-full h-100">
         <div className="relative mb-3 h-36 w-full overflow-hidden rounded-md">
           <Image
             src={car.image?.trim() || "/cars/placeholder.svg"}
             alt={`${car.make} ${car.model}`}
             fill
-            sizes="(max-width: 768px) 100vw, 50vw"
+            sizes="(max-width: 500px) 100vw, 50vw"
             className="object-cover"
           />
         </div>
