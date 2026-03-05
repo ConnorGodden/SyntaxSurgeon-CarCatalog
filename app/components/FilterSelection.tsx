@@ -25,7 +25,7 @@ export default function FilterSelection({
                 option && (
                     <div key={option} className="w-full">
                         <label className="block mb-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                            {option.charAt(0).toUpperCase() + option.slice(1)}
+                            {(option.charAt(0).toUpperCase() + option.slice(1)).replace("_", " ")}
                         </label>
                         <select
                             value={selections[option] ?? ""}
@@ -41,11 +41,18 @@ export default function FilterSelection({
                                   ))
                                 : uniqueValues(option)
                                       .filter((value) => value)
+                                      .sort((a, b) => {
+                                          const numA = Number(a);
+                                          const numB = Number(b);
+                                          return !isNaN(numA) && !isNaN(numB) 
+                                              ? numA - numB 
+                                              : a.localeCompare(b);
+                                      })
                                       .map((value) => (
                                           <option key={value} value={value}>
-                                              {value}
+                                              {value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()}
                                           </option>
-                                      ))}
+                                      ))}   
                         </select>
                     </div>
                 )
