@@ -5,18 +5,25 @@ import { Car, parseCsv } from "../../types/car";
 import FilterSelection from "./FilterSelection";
 import { cleanSelection } from "../../types/filter";
 import CarCard from "./CarCard";
+import AddListingForm from "./AddListingForm";
 
 
 export default function CarCatalog() {
   const [cars, setCars] = useState<Car[]>([]);
   const [query, setQuery] = useState("");
   const [selections, setSelections] = useState<Record<string, string>>({});
+  const [showAddForm, setShowAddForm] = useState(false);
 
   useEffect(() => {
     fetch("/cars.csv")
       .then((res) => res.text())
       .then((text) => setCars(parseCsv(text)));
   }, []);
+
+  const handleAddListing = (car: Car) => {
+    setCars((prev) => [car, ...prev]);
+    setShowAddForm(false);
+  };
 
   // useMemo, the filtering is skipped unless an actual input is changed (if cars or query is changed)
   const filtered = useMemo(() => {
@@ -40,7 +47,24 @@ export default function CarCatalog() {
 
       {/* Right: catalog */}
       <div className="flex flex-1 flex-col p-8 overflow-hidden">
-        <h1 className="mb-4 text-3xl font-bold shrink-0">View our Catalog of Cars</h1>
+        <div className="flex items-center justify-between mb-4 shrink-0">
+          <h1 className="text-3xl font-bold">View our Catalog of Cars</h1>
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          >
+            Add New Listing
+          </button>
+        </div>
+
+        {showAddForm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="bg-white dark:bg-zinc-950 rounded-xl shadow-xl max-w-lg w-full p-6">
+              <AddListingForm onSubmit={handleAddListing} onCancel={() => setShowAddForm(false)} />
+            </div>
+          </div>
+        )}
+
         <input
           type="text"
           placeholder="Search cars..."
@@ -50,6 +74,7 @@ export default function CarCatalog() {
         />
 
         <div className="overflow-y-auto flex-1">
+          {/* This div contains the list of cars that will be filtered, and the parameters within map represent the index and type of car*/}
           <div className="grid grid-cols-3 gap-6">
             {cleanSelection(filtered, selections).map((car, i) => (
               <CarCard key={i} car={car} />
