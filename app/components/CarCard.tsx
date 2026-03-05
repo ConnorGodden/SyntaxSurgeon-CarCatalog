@@ -20,7 +20,7 @@ export default function CarCard({ car }: { car: Car }) {
               src={src}
               alt={`${car.make} ${car.model}`}
               fill
-              sizes="(max-width: 500px) 100vw, 50vw"
+              sizes="(max-width: 768px) 100vw, 50vw"
               className="object-cover"
             />
           )}
