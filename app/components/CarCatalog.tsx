@@ -10,7 +10,7 @@ import CarCard from "./CarCard";
 import FilterSelection from "./FilterSelection";
 import AddListingForm from "./AddListingForm";
 import UserBox from "./UserBox";
-
+import Link from "next/link";
 
 export default function CarCatalog() {
   const [cars, setCars] = useState<Car[]>([]);
@@ -48,16 +48,14 @@ export default function CarCatalog() {
     <div className="flex h-screen w-full bg-zinc-100/70 dark:bg-zinc-950">
       {/* Left sidebar: filters */}
       <aside
-        className={`flex shrink-0 flex-col border-r border-zinc-200 bg-white/95 p-4 transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-950/95 ${
-          sidebarCollapsed ? "w-24" : "w-80"
-        }`}
+        className={`flex shrink-0 flex-col border-r border-zinc-200 bg-white/95 p-4 transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-950/95 ${sidebarCollapsed ? "w-24" : "w-80"
+          }`}
       >
         <button
           type="button"
           onClick={() => setSidebarCollapsed((prev) => !prev)}
-          className={`flex items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 text-left transition hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/80 ${
-            sidebarCollapsed ? "justify-center" : ""
-          }`}
+          className={`flex items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 text-left transition hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/80 ${sidebarCollapsed ? "justify-center" : ""
+            }`}
           aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
@@ -87,9 +85,8 @@ export default function CarCatalog() {
         <button
           type="button"
           onClick={() => setShowProfile(true)}
-          className={`mt-4 flex items-center rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 transition hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/80 ${
-            sidebarCollapsed ? "justify-center" : "gap-3"
-          }`}
+          className={`mt-4 flex items-center rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 transition hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/80 ${sidebarCollapsed ? "justify-center" : "gap-3"
+            }`}
         >
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">
             MC
@@ -102,6 +99,9 @@ export default function CarCatalog() {
           )}
         </button>
       </aside>
+
+      {/* Profile box on the left bottom */}
+      {showProfile && (<UserBox onShowProfileChange={setShowProfile} />)}
 
       {/* Right: catalog */}
       <div className="flex flex-1 flex-col overflow-hidden p-8">
@@ -123,8 +123,6 @@ export default function CarCatalog() {
           </div>
         )}
 
-        {/* Profile box on the left bottom */}
-        {showProfile && ( <UserBox onShowProfileChange={setShowProfile}/>)}
 
         <input
           type="text"
@@ -138,7 +136,15 @@ export default function CarCatalog() {
           {/* This div contains the list of cars that will be filtered, and the parameters within map represent the index and type of car*/}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
             {cleanSelection(filtered, selections).map((car, i) => (
-              <CarCard key={i} car={car} />
+              <Link
+                href={{
+                  pathname: "/car-listing",
+                  query: { carData: JSON.stringify(car) },
+                }}
+                key={i}
+              >
+                <CarCard car={car} />
+              </Link>
             ))}
           </div>
         </div>
