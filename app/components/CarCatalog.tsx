@@ -1,12 +1,16 @@
 "use client";
 
+// Importing types and utilities
 import { useEffect, useState, useMemo } from "react";
 import { Car, parseCsv } from "../../types/car";
-import FilterSelection from "./FilterSelection";
 import { cleanSelection } from "../../types/filter";
-import CarCard from "./CarCard";
-import AddListingForm from "./AddListingForm";
 
+// Importing components
+import CarCard from "./CarCard";
+import FilterSelection from "./FilterSelection";
+import AddListingForm from "./AddListingForm";
+import UserBox from "./UserBox";
+import Link from "next/link";
 
 export default function CarCatalog() {
   const [cars, setCars] = useState<Car[]>([]);
@@ -70,16 +74,14 @@ export default function CarCatalog() {
     <div className="flex h-screen w-full bg-zinc-100/70 dark:bg-zinc-950">
       {/* Left sidebar: filters */}
       <aside
-        className={`flex shrink-0 flex-col border-r border-zinc-200 bg-white/95 p-4 transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-950/95 ${
-          sidebarCollapsed ? "w-24" : "w-80"
-        }`}
+        className={`flex shrink-0 flex-col border-r border-zinc-200 bg-white/95 p-4 transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-950/95 ${sidebarCollapsed ? "w-24" : "w-80"
+          }`}
       >
         <button
           type="button"
           onClick={() => setSidebarCollapsed((prev) => !prev)}
-          className={`flex items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 text-left transition hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/80 ${
-            sidebarCollapsed ? "justify-center" : ""
-          }`}
+          className={`flex items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 text-left transition hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/80 ${sidebarCollapsed ? "justify-center" : ""
+            }`}
           aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
@@ -109,9 +111,8 @@ export default function CarCatalog() {
         <button
           type="button"
           onClick={() => setShowProfile(true)}
-          className={`mt-4 flex items-center rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 transition hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/80 ${
-            sidebarCollapsed ? "justify-center" : "gap-3"
-          }`}
+          className={`mt-4 flex items-center rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 transition hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/80 ${sidebarCollapsed ? "justify-center" : "gap-3"
+            }`}
         >
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">
             MC
@@ -124,6 +125,9 @@ export default function CarCatalog() {
           )}
         </button>
       </aside>
+
+      {/* Profile box on the left bottom */}
+      {showProfile && (<UserBox onShowProfileChange={setShowProfile} />)}
 
       {/* Right: catalog */}
       <div className="flex flex-1 flex-col overflow-hidden p-8">
@@ -145,52 +149,6 @@ export default function CarCatalog() {
           </div>
         )}
 
-        {showProfile && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-            onClick={() => setShowProfile(false)}
-          >
-            <div
-              className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl dark:bg-zinc-950"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-900 text-lg font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">
-                    MC
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-zinc-500">Profile</p>
-                    <h2 className="text-2xl font-semibold">Matthew Carter</h2>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">Car Catalogue Admin</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowProfile(false)}
-                  className="rounded-full border border-zinc-200 px-3 py-1 text-sm hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-900"
-                >
-                  Close
-                </button>
-              </div>
-
-              <div className="mt-6 grid gap-4 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/70">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">Email</p>
-                  <p className="mt-1 text-sm">matthew.carter@carcatalogue.dev</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">Role</p>
-                  <p className="mt-1 text-sm">Inventory Manager</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">Focus</p>
-                  <p className="mt-1 text-sm">Managing listings, pricing quality, and catalogue updates.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <input
@@ -238,7 +196,15 @@ export default function CarCatalog() {
           {/* This div contains the list of cars that will be filtered, and the parameters within map represent the index and type of car*/}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
             {visibleCars.map((car, i) => (
-              <CarCard key={car.vin || i} car={car} />
+              <Link
+                href={{
+                  pathname: "/car-listing",
+                  query: { carData: JSON.stringify(car) },
+                }}
+                key={car.vin || i}
+              >
+                <CarCard car={car} />
+              </Link>
             ))}
           </div>
         </div>
