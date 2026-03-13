@@ -73,6 +73,7 @@ export default function AddListingForm({ onSubmit, onCancel }: AddListingFormPro
       next.year = "Enter a valid year (1900–" + (new Date().getFullYear() + 1) + ")";
     if (!formData.make.trim()) next.make = "Make is required";
     if (!formData.model.trim()) next.model = "Model is required";
+    if (!formData.vin.trim()) next.vin = "VIN is required";
     if (!formData.condition) next.condition = "Condition is required";
     const odometerNum = parseFloat(formData.odometer.split(",").join(""));
     if (!formData.odometer.trim()) next.odometer = "Odometer (KM) is required";
@@ -212,7 +213,9 @@ export default function AddListingForm({ onSubmit, onCancel }: AddListingFormPro
           onChange={(e) => updateField("vin", e.target.value)}
           placeholder="Vehicle Identification Number"
           className={inputClass}
+          required
         />
+        <p className={errorClass}>{errors.vin}</p>
       </div>
 
       <div>
