@@ -16,6 +16,8 @@ export default function CarCatalog() {
   const [cars, setCars] = useState<Car[]>([]);
   const [query, setQuery] = useState("");
   const [selections, setSelections] = useState<Record<string, string>>({});
+  const [sortBy, setSortBy] = useState<"" | "price" | "mileage" | "year" | "newest">("");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [showAddForm, setShowAddForm] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -91,6 +93,30 @@ export default function CarCatalog() {
       return haystack.includes(q)
     })
   }, [cars, query])
+
+  const visibleCars = useMemo(() => {
+    const base = cleanSelection(filtered, selections);
+    if (!sortBy) return base;
+
+    const sortValue = (car: Car) => {
+      if (sortBy === "price") return car.sellingprice;
+      if (sortBy === "mileage") return car.odometer;
+      if (sortBy === "year") return car.year;
+      if (sortBy === "newest") {
+        const ts = Date.parse(car.saledate);
+        return Number.isNaN(ts) ? 0 : ts;
+      }
+      return 0;
+    };
+
+    const sorted = [...base].sort((a, b) => {
+      const aVal = sortValue(a);
+      const bVal = sortValue(b);
+      return aVal - bVal;
+    });
+
+    return sortDirection === "desc" ? sorted.reverse() : sorted;
+  }, [filtered, selections, sortBy, sortDirection]);
 
   return (
     <div className="flex h-screen w-full bg-zinc-100/70 dark:bg-zinc-950">
@@ -179,13 +205,47 @@ export default function CarCatalog() {
         )}
 
 
-        <input
-          type="text"
-          placeholder="Search cars..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="mb-6 shrink-0 rounded-lg border border-zinc-200 px-4 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600"
-        />
+        <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <input
+            type="text"
+            placeholder="Search cars..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="flex-1 rounded-lg border border-zinc-200 px-4 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600"
+          />
+
+          <div className="flex items-center gap-2">
+            <label htmlFor="sort" className="sr-only">
+              Sort results
+            </label>
+            <select
+              id="sort"
+              value={sortBy}
+              onChange={(e) => {
+                const next = e.target.value as "" | "price" | "mileage" | "year" | "newest";
+                setSortBy(next);
+                setSortDirection(next === "newest" ? "desc" : "asc");
+              }}
+              className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600"
+            >
+              <option value="">Sort</option>
+              <option value="price">Price</option>
+              <option value="mileage">Mileage</option>
+              <option value="year">Year</option>
+              <option value="newest">Newest</option>
+            </select>
+            {sortBy && (
+              <button
+                type="button"
+                onClick={() => setSortDirection((curr) => (curr === "asc" ? "desc" : "asc"))}
+                className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+                aria-label={sortDirection === "asc" ? "Sort descending" : "Sort ascending"}
+              >
+                {sortDirection === "asc" ? "↑" : "↓"}
+              </button>
+            )}
+          </div>
+        </div>
 
         <div className="overflow-y-auto flex-1">
           {/* This div contains the list of cars that will be filtered, and the parameters within map represent the index and type of car*/}
@@ -196,6 +256,13 @@ export default function CarCatalog() {
                 key={i}
                 onClick={() => setActiveCar(car)}
                 className="text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950 rounded-lg"
+            {visibleCars.map((car, i) => (
+              <Link
+                href={{
+                  pathname: "/car-listing",
+                  query: { carData: JSON.stringify(car) },
+                }}
+                key={car.vin || i}
               >
                 <CarCard car={car} />
               </button>
