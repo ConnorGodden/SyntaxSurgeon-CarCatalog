@@ -249,7 +249,7 @@ export default function CarCatalog() {
                 type="button"
                 key={car.vin || i}
                 onClick={() => setActiveCar(car)}
-                className="rounded-lg text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950"
+                className="cursor-pointer rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950"
               >
                 <CarCard car={car} />
               </button>
