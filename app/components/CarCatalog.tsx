@@ -21,7 +21,6 @@ export default function CarCatalog() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-<<<<<<< HEAD
   const [activeCar, setActiveCar] = useState<Car | null>(null);
 
   const LOCAL_STORAGE_KEY = "user_listings_v1";
@@ -54,10 +53,8 @@ export default function CarCatalog() {
       // ignore storage quota / privacy mode failures
     }
   };
-=======
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 10;
->>>>>>> f8bf59f (unit tests and images)
 
   useEffect(() => {
     fetch("/cars.csv")
@@ -262,23 +259,12 @@ export default function CarCatalog() {
         <div className="overflow-y-auto flex-1">
           {/* This div contains the list of cars that will be filtered, and the parameters within map represent the index and type of car*/}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-<<<<<<< HEAD
-            {cleanSelection(filtered, selections).map((car, i) => (
+            {pagedCars.map((car, i) => (
               <button
                 type="button"
-                key={i}
+                key={car.vin || i}
                 onClick={() => setActiveCar(car)}
                 className="text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950 rounded-lg"
-            {visibleCars.map((car, i) => (
-=======
-            {pagedCars.map((car, i) => (
->>>>>>> f8bf59f (unit tests and images)
-              <Link
-                href={{
-                  pathname: "/car-listing",
-                  query: { carData: JSON.stringify(car) },
-                }}
-                key={car.vin || i}
               >
                 <CarCard car={car} />
               </button>
