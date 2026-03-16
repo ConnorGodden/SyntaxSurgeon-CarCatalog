@@ -10,7 +10,7 @@ import CarCard from "./CarCard";
 import FilterSelection from "./FilterSelection";
 import AddListingForm from "./AddListingForm";
 import UserBox from "./UserBox";
-import Link from "next/link";
+import CarDetailsModal from "./CarDetailsModal";
 
 export default function CarCatalog() {
   const [cars, setCars] = useState<Car[]>([]);
@@ -21,15 +21,63 @@ export default function CarCatalog() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [activeCar, setActiveCar] = useState<Car | null>(null);
+
+  const LOCAL_STORAGE_KEY = "user_listings_v1";
+
+  const normalizeVin = (vin: unknown): string => {
+    if (typeof vin !== "string") return "";
+    const trimmed = vin.trim();
+    if (!trimmed) return "";
+    if (trimmed.toLowerCase() === "undefined" || trimmed.toLowerCase() === "null") return "";
+    return trimmed;
+  };
+
+  const loadSavedListings = (): Car[] => {
+    try {
+      const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw) as unknown;
+      if (!Array.isArray(parsed)) return [];
+      // Drop any old/bad entries that don't have a usable VIN.
+      return (parsed as Car[]).filter((c) => normalizeVin((c as Car | undefined)?.vin));
+    } catch {
+      return [];
+    }
+  };
+
+  const persistSavedListings = (next: Car[]) => {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      // ignore storage quota / privacy mode failures
+    }
+  };
 
   useEffect(() => {
     fetch("/cars.csv")
       .then((res) => res.text())
-      .then((text) => setCars(parseCsv(text)));
+      .then((text) => {
+        const csvCars = parseCsv(text);
+        const saved = loadSavedListings();
+        const savedVins = new Set(saved.map((c) => normalizeVin(c.vin)));
+        const merged = [
+          ...saved,
+          ...csvCars.filter((c) => {
+            const v = normalizeVin(c.vin);
+            return v && !savedVins.has(v);
+          }),
+        ];
+        setCars(merged);
+      });
   }, []);
 
   const handleAddListing = (car: Car) => {
-    setCars((prev) => [car, ...prev]);
+    const vin = normalizeVin(car.vin);
+    const nextCar = { ...car, vin };
+    setCars((prev) => [nextCar, ...prev]);
+    const nextSaved = [nextCar, ...loadSavedListings().filter((c) => normalizeVin(c?.vin) && normalizeVin(c.vin) !== vin)];
+    persistSavedListings(nextSaved);
     setShowAddForm(false);
   };
 
@@ -149,6 +197,13 @@ export default function CarCatalog() {
           </div>
         )}
 
+        {activeCar && (
+          <CarDetailsModal
+            car={activeCar}
+            onClose={() => setActiveCar(null)}
+          />
+        )}
+
 
         <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <input
@@ -195,6 +250,12 @@ export default function CarCatalog() {
         <div className="overflow-y-auto flex-1">
           {/* This div contains the list of cars that will be filtered, and the parameters within map represent the index and type of car*/}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {cleanSelection(filtered, selections).map((car, i) => (
+              <button
+                type="button"
+                key={i}
+                onClick={() => setActiveCar(car)}
+                className="text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950 rounded-lg"
             {visibleCars.map((car, i) => (
               <Link
                 href={{
@@ -204,7 +265,7 @@ export default function CarCatalog() {
                 key={car.vin || i}
               >
                 <CarCard car={car} />
-              </Link>
+              </button>
             ))}
           </div>
         </div>
