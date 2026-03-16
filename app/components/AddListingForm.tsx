@@ -124,7 +124,7 @@ export default function AddListingForm({ onSubmit, onCancel }: AddListingFormPro
   const errorClass = "mt-1 text-xs text-red-500";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <h2 className="text-xl font-semibold">Add New Listing</h2>
 
       <div>
@@ -325,14 +325,14 @@ export default function AddListingForm({ onSubmit, onCancel }: AddListingFormPro
       <div className="flex gap-3 pt-4">
         <button
           type="submit"
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          className="cursor-pointer rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
         >
           Add Listing
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+          className="cursor-pointer rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
         >
           Cancel
         </button>

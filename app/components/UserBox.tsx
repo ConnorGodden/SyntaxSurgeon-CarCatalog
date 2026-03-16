@@ -28,7 +28,7 @@ export default function UserBox({ onShowProfileChange }: { onShowProfileChange: 
                 <button
                   type="button"
                   onClick={() => onShowProfileChange(false)}
-                  className="rounded-full border border-zinc-200 px-3 py-1 text-sm hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-900"
+                  className="cursor-pointer rounded-full border border-zinc-200 px-3 py-1 text-sm hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-900"
                 >
                   Close
                 </button>
