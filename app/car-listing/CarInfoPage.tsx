@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { Car } from "../../types/car";
 import Image from "next/image";
+import { getCarImageSrc } from "../../utils/carImage";
 
 export default function CarInfoPage({ car }: { car: Car }) {
-    const imageSrc = car.image || "/cars/placeholder.svg";
+    const imageSrc = getCarImageSrc(car);
 
     return (
         <div className="mx-auto max-w-3xl rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">

@@ -18,6 +18,7 @@ export default function CarCatalog() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+<<<<<<< HEAD
   const [activeCar, setActiveCar] = useState<Car | null>(null);
 
   const LOCAL_STORAGE_KEY = "user_listings_v1";
@@ -49,6 +50,10 @@ export default function CarCatalog() {
       // Ignore storage failures in private mode or when quota is exceeded.
     }
   };
+=======
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
+>>>>>>> f8bf59f (unit tests and images)
 
   useEffect(() => {
     fetch("/cars.csv")
@@ -80,6 +85,10 @@ export default function CarCatalog() {
     setShowAddForm(false);
   };
 
+  // Reset to page 1 whenever filters/search/sort change
+  const resetPage = () => setCurrentPage(1);
+
+  // useMemo, the filtering is skipped unless an actual input is changed (if cars or query is changed)
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return cars;
@@ -109,6 +118,9 @@ export default function CarCatalog() {
     return sortDirection === "desc" ? sorted.reverse() : sorted;
   }, [filtered, selections, sortBy, sortDirection]);
 
+  const totalPages = Math.max(1, Math.ceil(visibleCars.length / PAGE_SIZE));
+  const pagedCars = visibleCars.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
   return (
     <div className="flex h-screen w-full bg-zinc-100/70 dark:bg-zinc-950">
       <aside
@@ -119,9 +131,8 @@ export default function CarCatalog() {
         <button
           type="button"
           onClick={() => setSidebarCollapsed((prev) => !prev)}
-          className={`flex cursor-pointer items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 text-left transition hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/80 ${
-            sidebarCollapsed ? "justify-center" : ""
-          }`}
+          className={`flex cursor-pointer items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 text-left transition hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/80 ${sidebarCollapsed ? "justify-center" : ""
+            }`}
           aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
@@ -152,7 +163,7 @@ export default function CarCatalog() {
           <FilterSelection
             cars={cars}
             selections={selections}
-            onSelectionChange={setSelections}
+            onSelectionChange={(next) => { setSelections(next); resetPage(); }}
             collapsed={sidebarCollapsed}
           />
         </div>
@@ -160,9 +171,8 @@ export default function CarCatalog() {
         <button
           type="button"
           onClick={() => setShowProfile(true)}
-          className={`mt-4 flex cursor-pointer items-center rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 transition hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/80 ${
-            sidebarCollapsed ? "justify-center" : "gap-3"
-          }`}
+          className={`mt-4 flex cursor-pointer items-center rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 transition hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/80 ${sidebarCollapsed ? "justify-center" : "gap-3"
+            }`}
         >
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">
             MC
@@ -192,7 +202,7 @@ export default function CarCatalog() {
 
         {showAddForm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white p-6 shadow-xl dark:bg-zinc-950">
+            <div className="bg-white dark:bg-zinc-950 rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6">
               <AddListingForm onSubmit={handleAddListing} onCancel={() => setShowAddForm(false)} />
             </div>
           </div>
@@ -205,7 +215,7 @@ export default function CarCatalog() {
             type="text"
             placeholder="Search cars..."
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => { setQuery(e.target.value); resetPage(); }}
             className="flex-1 rounded-lg border border-zinc-200 px-4 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600"
           />
 
@@ -220,6 +230,7 @@ export default function CarCatalog() {
                 const next = e.target.value as "" | "price" | "mileage" | "year" | "newest";
                 setSortBy(next);
                 setSortDirection(next === "newest" ? "desc" : "asc");
+                resetPage();
               }}
               className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600"
             >
@@ -244,16 +255,68 @@ export default function CarCatalog() {
 
         <div className="flex-1 overflow-y-auto">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {visibleCars.map((car, i) => (
+<<<<<<< HEAD
+            {cleanSelection(filtered, selections).map((car, i) => (
               <button
                 type="button"
                 key={car.vin || i}
                 onClick={() => setActiveCar(car)}
-                className="cursor-pointer rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950"
+                className="text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950 rounded-lg"
+            {visibleCars.map((car, i) => (
+=======
+            {pagedCars.map((car, i) => (
+>>>>>>> f8bf59f (unit tests and images)
+              <Link
+                href={{
+                  pathname: "/car-listing",
+                  query: { carData: JSON.stringify(car) },
+                }}
+                key={car.vin || i}
               >
                 <CarCard car={car} />
               </button>
             ))}
+          </div>
+
+          {/* Pagination controls */}
+          <div className="mt-8 flex items-center justify-between">
+            <p className="text-sm text-zinc-500">
+              {visibleCars.length === 0
+                ? "No results"
+                : `${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, visibleCars.length)} of ${visibleCars.length}`}
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="cursor-pointer rounded-lg border border-zinc-200 px-3 py-1.5 text-sm hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-800 dark:hover:bg-zinc-800"
+              >
+                ←
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setCurrentPage(page)}
+                  className={`cursor-pointer rounded-lg border px-3 py-1.5 text-sm ${
+                    page === currentPage
+                      ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
+                      : "border-zinc-200 hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="cursor-pointer rounded-lg border border-zinc-200 px-3 py-1.5 text-sm hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-800 dark:hover:bg-zinc-800"
+              >
+                →
+              </button>
+            </div>
           </div>
         </div>
       </div>
