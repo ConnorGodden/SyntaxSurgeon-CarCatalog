@@ -21,6 +21,7 @@ export default function CarCatalog() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+<<<<<<< HEAD
   const [activeCar, setActiveCar] = useState<Car | null>(null);
 
   const LOCAL_STORAGE_KEY = "user_listings_v1";
@@ -53,6 +54,10 @@ export default function CarCatalog() {
       // ignore storage quota / privacy mode failures
     }
   };
+=======
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
+>>>>>>> f8bf59f (unit tests and images)
 
   useEffect(() => {
     fetch("/cars.csv")
@@ -80,6 +85,9 @@ export default function CarCatalog() {
     persistSavedListings(nextSaved);
     setShowAddForm(false);
   };
+
+  // Reset to page 1 whenever filters/search/sort change
+  const resetPage = () => setCurrentPage(1);
 
   // useMemo, the filtering is skipped unless an actual input is changed (if cars or query is changed)
   const filtered = useMemo(() => {
@@ -118,6 +126,9 @@ export default function CarCatalog() {
     return sortDirection === "desc" ? sorted.reverse() : sorted;
   }, [filtered, selections, sortBy, sortDirection]);
 
+  const totalPages = Math.max(1, Math.ceil(visibleCars.length / PAGE_SIZE));
+  const pagedCars = visibleCars.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
   return (
     <div className="flex h-screen w-full bg-zinc-100/70 dark:bg-zinc-950">
       {/* Left sidebar: filters */}
@@ -151,7 +162,7 @@ export default function CarCatalog() {
           <FilterSelection
             cars={cars}
             selections={selections}
-            onSelectionChange={setSelections}
+            onSelectionChange={(next) => { setSelections(next); resetPage(); }}
             collapsed={sidebarCollapsed}
           />
         </div>
@@ -210,7 +221,7 @@ export default function CarCatalog() {
             type="text"
             placeholder="Search cars..."
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => { setQuery(e.target.value); resetPage(); }}
             className="flex-1 rounded-lg border border-zinc-200 px-4 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600"
           />
 
@@ -225,6 +236,7 @@ export default function CarCatalog() {
                 const next = e.target.value as "" | "price" | "mileage" | "year" | "newest";
                 setSortBy(next);
                 setSortDirection(next === "newest" ? "desc" : "asc");
+                resetPage();
               }}
               className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600"
             >
@@ -250,6 +262,7 @@ export default function CarCatalog() {
         <div className="overflow-y-auto flex-1">
           {/* This div contains the list of cars that will be filtered, and the parameters within map represent the index and type of car*/}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+<<<<<<< HEAD
             {cleanSelection(filtered, selections).map((car, i) => (
               <button
                 type="button"
@@ -257,6 +270,9 @@ export default function CarCatalog() {
                 onClick={() => setActiveCar(car)}
                 className="text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950 rounded-lg"
             {visibleCars.map((car, i) => (
+=======
+            {pagedCars.map((car, i) => (
+>>>>>>> f8bf59f (unit tests and images)
               <Link
                 href={{
                   pathname: "/car-listing",
@@ -267,6 +283,47 @@ export default function CarCatalog() {
                 <CarCard car={car} />
               </button>
             ))}
+          </div>
+
+          {/* Pagination controls */}
+          <div className="mt-8 flex items-center justify-between">
+            <p className="text-sm text-zinc-500">
+              {visibleCars.length === 0
+                ? "No results"
+                : `${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, visibleCars.length)} of ${visibleCars.length}`}
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="cursor-pointer rounded-lg border border-zinc-200 px-3 py-1.5 text-sm hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-800 dark:hover:bg-zinc-800"
+              >
+                ←
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setCurrentPage(page)}
+                  className={`cursor-pointer rounded-lg border px-3 py-1.5 text-sm ${
+                    page === currentPage
+                      ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
+                      : "border-zinc-200 hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="cursor-pointer rounded-lg border border-zinc-200 px-3 py-1.5 text-sm hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-800 dark:hover:bg-zinc-800"
+              >
+                →
+              </button>
+            </div>
           </div>
         </div>
       </div>
