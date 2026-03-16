@@ -128,7 +128,7 @@ export default function CarCatalog() {
         <button
           type="button"
           onClick={() => setSidebarCollapsed((prev) => !prev)}
-          className={`flex items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 text-left transition hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/80 ${sidebarCollapsed ? "justify-center" : ""
+          className={`flex cursor-pointer items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 text-left transition hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/80 ${sidebarCollapsed ? "justify-center" : ""
             }`}
           aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
@@ -159,7 +159,7 @@ export default function CarCatalog() {
         <button
           type="button"
           onClick={() => setShowProfile(true)}
-          className={`mt-4 flex items-center rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 transition hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/80 ${sidebarCollapsed ? "justify-center" : "gap-3"
+          className={`mt-4 flex cursor-pointer items-center rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 transition hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/80 ${sidebarCollapsed ? "justify-center" : "gap-3"
             }`}
         >
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">
@@ -183,7 +183,7 @@ export default function CarCatalog() {
           <h1 className="text-3xl font-bold">View our Catalog of Cars</h1>
           <button
             onClick={() => setShowAddForm(true)}
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            className="cursor-pointer rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
           >
             Add New Listing
           </button>
@@ -191,7 +191,7 @@ export default function CarCatalog() {
 
         {showAddForm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="bg-white dark:bg-zinc-950 rounded-xl shadow-xl max-w-lg w-full p-6">
+            <div className="bg-white dark:bg-zinc-950 rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6">
               <AddListingForm onSubmit={handleAddListing} onCancel={() => setShowAddForm(false)} />
             </div>
           </div>
@@ -238,7 +238,7 @@ export default function CarCatalog() {
               <button
                 type="button"
                 onClick={() => setSortDirection((curr) => (curr === "asc" ? "desc" : "asc"))}
-                className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+                className="cursor-pointer rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
                 aria-label={sortDirection === "asc" ? "Sort descending" : "Sort ascending"}
               >
                 {sortDirection === "asc" ? "↑" : "↓"}
