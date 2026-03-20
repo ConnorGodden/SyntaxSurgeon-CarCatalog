@@ -19,6 +19,7 @@ export default function CarCatalog() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [activeCar, setActiveCar] = useState<Car | null>(null);
+  const [editCar, setEditCar] = useState<Car | null>(null);
 
   const LOCAL_STORAGE_KEY = "user_listings_v1";
 
@@ -80,6 +81,19 @@ export default function CarCatalog() {
     ];
     persistSavedListings(nextSaved);
     setShowAddForm(false);
+  };
+
+  const handleEditListing = (car: Car) => {
+    const vin = normalizeVin(car.vin);
+    const nextCar = { ...car, vin };
+    setCars((prev) => prev.map((c) => normalizeVin(c.vin) === vin ? nextCar : c));
+    const existing = loadSavedListings();
+    const alreadySaved = existing.some((c) => normalizeVin(c.vin) === vin);
+    const nextSaved = alreadySaved
+      ? existing.map((c) => normalizeVin(c.vin) === vin ? nextCar : c)
+      : [nextCar, ...existing];
+    persistSavedListings(nextSaved);
+    setEditCar(null);
   };
 
   // Reset to page 1 whenever filters/search/sort change
@@ -165,22 +179,6 @@ export default function CarCatalog() {
           />
         </div>
 
-        <button
-          type="button"
-          onClick={() => setShowProfile(true)}
-          className={`mt-4 flex cursor-pointer items-center rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 transition hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/80 ${sidebarCollapsed ? "justify-center" : "gap-3"
-            }`}
-        >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">
-            MC
-          </span>
-          {!sidebarCollapsed && (
-            <div className="min-w-0 text-left">
-              <p className="truncate text-sm font-semibold text-zinc-950 dark:text-zinc-50">My Profile</p>
-              <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">View account details</p>
-            </div>
-          )}
-        </button>
       </aside>
 
       {showProfile && <UserBox onShowProfileChange={setShowProfile} />}
@@ -229,7 +227,7 @@ export default function CarCatalog() {
                 setSortDirection(next === "newest" ? "desc" : "asc");
                 resetPage();
               }}
-              className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600"
+              className="cursor-pointer rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600"
             >
               <option value="">Sort</option>
               <option value="price">Price</option>

@@ -3,9 +3,7 @@ import { parseCsv } from "../types/car";
 import { getCarImageSrc } from "../utils/carImage";
 import { mockCar } from "./mockCar";
 
-// ---------------------------------------------------------------------------
 // Helpers
-// ---------------------------------------------------------------------------
 
 const HEADER =
   "year,make,model,trim,body,transmission,vin,state,condition,odometer,color,interior,seller,mmr,sellingprice,saledate,deal_rating";
@@ -23,9 +21,7 @@ const SAMPLE_ROW = [
   "Tue Jan 06 2015 03:00:00 GMT-0800 (PDT)", "Fair Market",
 ];
 
-// ---------------------------------------------------------------------------
 // parseCsv
-// ---------------------------------------------------------------------------
 
 describe("parseCsv", () => {
   it("returns an empty array for an empty string", () => {
@@ -146,9 +142,7 @@ describe("parseCsv", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // getCarImageSrc
-// ---------------------------------------------------------------------------
 
 describe("getCarImageSrc", () => {
   it("returns car.image directly when it is a data URL", () => {
