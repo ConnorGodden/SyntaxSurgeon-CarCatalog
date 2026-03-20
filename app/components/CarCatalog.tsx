@@ -22,6 +22,7 @@ export default function CarCatalog() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [activeCar, setActiveCar] = useState<Car | null>(null);
+  const [editCar, setEditCar] = useState<Car | null>(null);
 
   const LOCAL_STORAGE_KEY = "user_listings_v1";
 
@@ -81,6 +82,19 @@ export default function CarCatalog() {
     const nextSaved = [nextCar, ...loadSavedListings().filter((c) => normalizeVin(c?.vin) && normalizeVin(c.vin) !== vin)];
     persistSavedListings(nextSaved);
     setShowAddForm(false);
+  };
+
+  const handleEditListing = (car: Car) => {
+    const vin = normalizeVin(car.vin);
+    const nextCar = { ...car, vin };
+    setCars((prev) => prev.map((c) => normalizeVin(c.vin) === vin ? nextCar : c));
+    const existing = loadSavedListings();
+    const alreadySaved = existing.some((c) => normalizeVin(c.vin) === vin);
+    const nextSaved = alreadySaved
+      ? existing.map((c) => normalizeVin(c.vin) === vin ? nextCar : c)
+      : [nextCar, ...existing];
+    persistSavedListings(nextSaved);
+    setEditCar(null);
   };
 
   // Reset to page 1 whenever filters/search/sort change
@@ -164,22 +178,6 @@ export default function CarCatalog() {
           />
         </div>
 
-        <button
-          type="button"
-          onClick={() => setShowProfile(true)}
-          className={`mt-4 flex cursor-pointer items-center rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 transition hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/80 ${sidebarCollapsed ? "justify-center" : "gap-3"
-            }`}
-        >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">
-            MC
-          </span>
-          {!sidebarCollapsed && (
-            <div className="min-w-0 text-left">
-              <p className="truncate text-sm font-semibold text-zinc-950 dark:text-zinc-50">My Profile</p>
-              <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">View account details</p>
-            </div>
-          )}
-        </button>
       </aside>
 
       {/* Profile box on the left bottom */}
@@ -189,12 +187,22 @@ export default function CarCatalog() {
       <div className="flex flex-1 flex-col overflow-hidden p-8">
         <div className="flex items-center justify-between mb-4 shrink-0">
           <h1 className="text-3xl font-bold">View our Catalog of Cars</h1>
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="cursor-pointer rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-          >
-            Add New Listing
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="cursor-pointer rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            >
+              Add New Listing
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowProfile(true)}
+              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-zinc-900 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+              aria-label="My Profile"
+            >
+              MC
+            </button>
+          </div>
         </div>
 
         {showAddForm && (
@@ -205,10 +213,23 @@ export default function CarCatalog() {
           </div>
         )}
 
+        {editCar && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="bg-white dark:bg-zinc-950 rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6">
+              <AddListingForm
+                initialCar={editCar}
+                onSubmit={handleEditListing}
+                onCancel={() => setEditCar(null)}
+              />
+            </div>
+          </div>
+        )}
+
         {activeCar && (
           <CarDetailsModal
             car={activeCar}
             onClose={() => setActiveCar(null)}
+            onEdit={(car) => { setActiveCar(null); setEditCar(car); }}
           />
         )}
 
@@ -235,7 +256,7 @@ export default function CarCatalog() {
                 setSortDirection(next === "newest" ? "desc" : "asc");
                 resetPage();
               }}
-              className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600"
+              className="cursor-pointer rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600"
             >
               <option value="">Sort</option>
               <option value="price">Price</option>

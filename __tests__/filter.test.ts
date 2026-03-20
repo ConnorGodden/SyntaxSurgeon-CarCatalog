@@ -2,9 +2,7 @@ import { describe, it, expect } from "vitest";
 import { cleanSelection } from "../types/filter";
 import { mockCar } from "./mockCar";
 
-// ---------------------------------------------------------------------------
 // Mock data
-// ---------------------------------------------------------------------------
 
 const ford2012  = mockCar({ make: "FORD",    model: "Focus",  year: 2012, body: "sedan",  condition: 30 });
 const ford2014  = mockCar({ make: "FORD",    model: "Escape", year: 2014, body: "suv",    condition: 35 });
@@ -14,9 +12,7 @@ const noTrim    = mockCar({ make: "KIA",     model: "Rio",    year: 2009, trim: 
 
 const ALL_CARS = [ford2012, ford2014, nissan, bmw, noTrim];
 
-// ---------------------------------------------------------------------------
 // cleanSelection
-// ---------------------------------------------------------------------------
 
 describe("cleanSelection", () => {
   it("returns all cars when selections is an empty object", () => {
