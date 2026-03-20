@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Car, parseCsv } from "../../types/car";
 import { cleanSelection } from "../../types/filter";
+import { sortCars } from "../../utils/sortCars";
 import CarCard from "./CarCard";
 import FilterSelection from "./FilterSelection";
 import AddListingForm from "./AddListingForm";
@@ -113,20 +114,7 @@ export default function CarCatalog() {
   const visibleCars = useMemo(() => {
     const base = cleanSelection(filtered, selections);
     if (!sortBy) return base;
-
-    const sortValue = (car: Car) => {
-      if (sortBy === "price") return car.sellingprice;
-      if (sortBy === "mileage") return car.odometer;
-      if (sortBy === "year") return car.year;
-      if (sortBy === "newest") {
-        const ts = Date.parse(car.saledate);
-        return Number.isNaN(ts) ? 0 : ts;
-      }
-      return 0;
-    };
-
-    const sorted = [...base].sort((a, b) => sortValue(a) - sortValue(b));
-    return sortDirection === "desc" ? sorted.reverse() : sorted;
+    return sortCars(base, sortBy, sortDirection);
   }, [filtered, selections, sortBy, sortDirection]);
 
   const totalPages = Math.max(1, Math.ceil(visibleCars.length / PAGE_SIZE));
