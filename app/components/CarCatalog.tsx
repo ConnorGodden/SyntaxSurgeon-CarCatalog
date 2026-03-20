@@ -1,11 +1,8 @@
 "use client";
 
-// Importing types and utilities
 import { useEffect, useState, useMemo } from "react";
 import { Car, parseCsv } from "../../types/car";
 import { cleanSelection } from "../../types/filter";
-
-// Importing components
 import CarCard from "./CarCard";
 import FilterSelection from "./FilterSelection";
 import AddListingForm from "./AddListingForm";
@@ -16,14 +13,15 @@ export default function CarCatalog() {
   const [cars, setCars] = useState<Car[]>([]);
   const [query, setQuery] = useState("");
   const [selections, setSelections] = useState<Record<string, string>>({});
-  const [sortBy, setSortBy] = useState<"" | "price" | "mileage" | "year" | "newest">("");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [showAddForm, setShowAddForm] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [activeCar, setActiveCar] = useState<Car | null>(null);
+  const [savedListings, setSavedListings] = useState<Car[]>([]);
+  const [showSavedListings, setShowSavedListings] = useState(false);
 
-  const LOCAL_STORAGE_KEY = "user_listings_v1";
+  const USER_LISTINGS_KEY = "user_listings_v1";
+  const SAVED_LISTINGS_KEY = "saved_listings_v1";
 
   const normalizeVin = (vin: unknown): string => {
     if (typeof vin !== "string") return "";
@@ -33,14 +31,45 @@ export default function CarCatalog() {
     return trimmed;
   };
 
-  const loadSavedListings = (): Car[] => {
+  const dedupeByVin = (list: Car[]) => {
+    const seen = new Set<string>();
+    const result: Car[] = [];
+    for (const car of list) {
+      const vin = normalizeVin(car?.vin);
+      if (!vin || seen.has(vin)) continue;
+      seen.add(vin);
+      result.push({ ...car, vin });
+    }
+    return result;
+  };
+
+  const loadUserListings = (): Car[] => {
     try {
-      const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+      const raw = localStorage.getItem(USER_LISTINGS_KEY);
       if (!raw) return [];
       const parsed = JSON.parse(raw) as unknown;
       if (!Array.isArray(parsed)) return [];
-      // Drop any old/bad entries that don't have a usable VIN.
-      return (parsed as Car[]).filter((c) => normalizeVin((c as Car | undefined)?.vin));
+      return dedupeByVin(parsed as Car[]);
+    } catch {
+      return [];
+    }
+  };
+
+  const persistUserListings = (next: Car[]) => {
+    try {
+      localStorage.setItem(USER_LISTINGS_KEY, JSON.stringify(dedupeByVin(next)));
+    } catch {
+      // ignore
+    }
+  };
+
+  const loadSavedListings = (): Car[] => {
+    try {
+      const raw = localStorage.getItem(SAVED_LISTINGS_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw) as unknown;
+      if (!Array.isArray(parsed)) return [];
+      return dedupeByVin(parsed as Car[]);
     } catch {
       return [];
     }
@@ -48,24 +77,25 @@ export default function CarCatalog() {
 
   const persistSavedListings = (next: Car[]) => {
     try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(next));
+      localStorage.setItem(SAVED_LISTINGS_KEY, JSON.stringify(dedupeByVin(next)));
     } catch {
-      // ignore storage quota / privacy mode failures
+      // ignore
     }
   };
 
   useEffect(() => {
+    setSavedListings(loadSavedListings());
     fetch("/cars.csv")
       .then((res) => res.text())
       .then((text) => {
         const csvCars = parseCsv(text);
-        const saved = loadSavedListings();
-        const savedVins = new Set(saved.map((c) => normalizeVin(c.vin)));
+        const userListings = loadUserListings();
+        const userListingVins = new Set(userListings.map((c) => normalizeVin(c.vin)));
         const merged = [
-          ...saved,
+          ...userListings,
           ...csvCars.filter((c) => {
             const v = normalizeVin(c.vin);
-            return v && !savedVins.has(v);
+            return v && !userListingVins.has(v);
           }),
         ];
         setCars(merged);
@@ -76,51 +106,52 @@ export default function CarCatalog() {
     const vin = normalizeVin(car.vin);
     const nextCar = { ...car, vin };
     setCars((prev) => [nextCar, ...prev]);
-    const nextSaved = [nextCar, ...loadSavedListings().filter((c) => normalizeVin(c?.vin) && normalizeVin(c.vin) !== vin)];
-    persistSavedListings(nextSaved);
+    const nextUserListings = [nextCar, ...loadUserListings().filter((c) => normalizeVin(c.vin) !== vin)];
+    persistUserListings(nextUserListings);
     setShowAddForm(false);
   };
 
-  // useMemo, the filtering is skipped unless an actual input is changed (if cars or query is changed)
   const filtered = useMemo(() => {
-    // We take the user's query and set it lowercase to standardize their query
     const q = query.trim().toLowerCase();
-    // If the query is empty, just return the full list (normal state)
     if (!q) return cars;
-    // This returns cars that include the query across common searchable fields.
     return cars.filter((car) => {
       const haystack = `${car.make} ${car.model} ${car.deal_rating} ${car.year} ${car.body}`.toLowerCase();
-      return haystack.includes(q)
-    })
-  }, [cars, query])
-
-  const visibleCars = useMemo(() => {
-    const base = cleanSelection(filtered, selections);
-    if (!sortBy) return base;
-
-    const sortValue = (car: Car) => {
-      if (sortBy === "price") return car.sellingprice;
-      if (sortBy === "mileage") return car.odometer;
-      if (sortBy === "year") return car.year;
-      if (sortBy === "newest") {
-        const ts = Date.parse(car.saledate);
-        return Number.isNaN(ts) ? 0 : ts;
-      }
-      return 0;
-    };
-
-    const sorted = [...base].sort((a, b) => {
-      const aVal = sortValue(a);
-      const bVal = sortValue(b);
-      return aVal - bVal;
+      return haystack.includes(q);
     });
+  }, [cars, query]);
 
-    return sortDirection === "desc" ? sorted.reverse() : sorted;
-  }, [filtered, selections, sortBy, sortDirection]);
+  const visibleCars = useMemo(() => cleanSelection(filtered, selections), [filtered, selections]);
+  const visibleSavedListings = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const base = cleanSelection(savedListings, selections);
+    if (!q) return base;
+    return base.filter((car) => {
+      const haystack = `${car.make} ${car.model} ${car.deal_rating} ${car.year} ${car.body}`.toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [savedListings, selections, query]);
+
+  const handleSaveListing = (car: Car) => {
+    const vin = normalizeVin(car.vin);
+    if (!vin) return;
+    const nextSaved = [{ ...car, vin }, ...savedListings.filter((c) => normalizeVin(c.vin) !== vin)];
+    setSavedListings(nextSaved);
+    persistSavedListings(nextSaved);
+  };
+
+  const handleRemoveSavedListing = (vin: string) => {
+    const nextSaved = savedListings.filter((car) => normalizeVin(car.vin) !== vin);
+    setSavedListings(nextSaved);
+    persistSavedListings(nextSaved);
+  };
+
+  const isCarSaved = (car: Car) => {
+    const vin = normalizeVin(car.vin);
+    return !!vin && savedListings.some((saved) => normalizeVin(saved.vin) === vin);
+  };
 
   return (
     <div className="flex h-screen w-full bg-zinc-100/70 dark:bg-zinc-950">
-      {/* Left sidebar: filters */}
       <aside
         className={`flex shrink-0 flex-col border-r border-zinc-200 bg-white/95 p-4 transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-950/95 ${sidebarCollapsed ? "w-24" : "w-80"
           }`}
@@ -174,19 +205,25 @@ export default function CarCatalog() {
         </button>
       </aside>
 
-      {/* Profile box on the left bottom */}
       {showProfile && (<UserBox onShowProfileChange={setShowProfile} />)}
 
-      {/* Right: catalog */}
       <div className="flex flex-1 flex-col overflow-hidden p-8">
         <div className="flex items-center justify-between mb-4 shrink-0">
-          <h1 className="text-3xl font-bold">View our Catalog of Cars</h1>
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-          >
-            Add New Listing
-          </button>
+          <h1 className="text-3xl font-bold">{showSavedListings ? "Saved Listings" : "View our Catalog of Cars"}</h1>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowSavedListings((prev) => !prev)}
+              className="rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+            >
+              {showSavedListings ? "Back to Catalog" : `Saved Listings (${savedListings.length})`}
+            </button>
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            >
+              Add New Listing
+            </button>
+          </div>
         </div>
 
         {showAddForm && (
@@ -201,72 +238,50 @@ export default function CarCatalog() {
           <CarDetailsModal
             car={activeCar}
             onClose={() => setActiveCar(null)}
+            onSave={handleSaveListing}
+            isSaved={isCarSaved(activeCar)}
           />
         )}
 
-
-        <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="mb-6">
           <input
             type="text"
-            placeholder="Search cars..."
+            placeholder={showSavedListings ? "Search saved listings..." : "Search cars..."}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="flex-1 rounded-lg border border-zinc-200 px-4 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600"
           />
-
-          <div className="flex items-center gap-2">
-            <label htmlFor="sort" className="sr-only">
-              Sort results
-            </label>
-            <select
-              id="sort"
-              value={sortBy}
-              onChange={(e) => {
-                const next = e.target.value as "" | "price" | "mileage" | "year" | "newest";
-                setSortBy(next);
-                setSortDirection(next === "newest" ? "desc" : "asc");
-              }}
-              className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600"
-            >
-              <option value="">Sort</option>
-              <option value="price">Price</option>
-              <option value="mileage">Mileage</option>
-              <option value="year">Year</option>
-              <option value="newest">Newest</option>
-            </select>
-            {sortBy && (
-              <button
-                type="button"
-                onClick={() => setSortDirection((curr) => (curr === "asc" ? "desc" : "asc"))}
-                className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
-                aria-label={sortDirection === "asc" ? "Sort descending" : "Sort ascending"}
-              >
-                {sortDirection === "asc" ? "↑" : "↓"}
-              </button>
-            )}
-          </div>
         </div>
 
         <div className="overflow-y-auto flex-1">
-          {/* This div contains the list of cars that will be filtered, and the parameters within map represent the index and type of car*/}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {cleanSelection(filtered, selections).map((car, i) => (
-              <button
-                type="button"
-                key={i}
-                onClick={() => setActiveCar(car)}
-                className="text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950 rounded-lg"
-            {visibleCars.map((car, i) => (
-              <Link
-                href={{
-                  pathname: "/car-listing",
-                  query: { carData: JSON.stringify(car) },
-                }}
-                key={car.vin || i}
-              >
-                <CarCard car={car} />
-              </button>
+            {(showSavedListings ? visibleSavedListings : visibleCars).map((car, i) => (
+              <div key={car.vin || i} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setActiveCar(car)}
+                  className="w-full text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950 rounded-lg"
+                >
+                  <CarCard car={car} />
+                </button>
+                {showSavedListings && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSavedListing(normalizeVin(car.vin))}
+                    className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border border-rose-200 bg-white/95 px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm transition hover:bg-rose-50 dark:border-rose-700/60 dark:bg-zinc-900/95 dark:text-rose-300 dark:hover:bg-rose-950/30"
+                    aria-label="Remove saved listing"
+                  >
+                    <span aria-hidden="true">✕</span>
+                    Remove
+                  </button>
+                )}
+              </div>
             ))}
+            {showSavedListings && visibleSavedListings.length === 0 && (
+              <div className="col-span-full rounded-xl border border-dashed border-zinc-300 p-8 text-center text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">
+                No saved listings yet. Open any car and click "Save Listing".
+              </div>
+            )}
           </div>
         </div>
       </div>
