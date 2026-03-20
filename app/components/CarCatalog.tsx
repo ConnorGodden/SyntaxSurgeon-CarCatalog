@@ -186,13 +186,23 @@ export default function CarCatalog() {
       <div className="flex flex-1 flex-col overflow-hidden p-8">
         <div className="mb-4 flex shrink-0 items-center justify-between">
           <h1 className="text-3xl font-bold">View our Catalog of Cars</h1>
-          <button
-            type="button"
-            onClick={() => setShowAddForm(true)}
-            className="cursor-pointer rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-          >
-            Add New Listing
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setShowAddForm(true)}
+              className="cursor-pointer rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            >
+              Add New Listing
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowProfile(true)}
+              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-zinc-900 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+              aria-label="My Profile"
+            >
+              MC
+            </button>
+          </div>
         </div>
 
         {showAddForm && (
@@ -203,7 +213,25 @@ export default function CarCatalog() {
           </div>
         )}
 
-        {activeCar && <CarDetailsModal car={activeCar} onClose={() => setActiveCar(null)} />}
+        {editCar && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="bg-white dark:bg-zinc-950 rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6">
+              <AddListingForm
+                initialCar={editCar}
+                onSubmit={handleEditListing}
+                onCancel={() => setEditCar(null)}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeCar && (
+          <CarDetailsModal
+            car={activeCar}
+            onClose={() => setActiveCar(null)}
+            onEdit={(car) => { setActiveCar(null); setEditCar(car); }}
+          />
+        )}
 
         <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <input
