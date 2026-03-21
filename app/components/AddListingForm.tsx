@@ -16,12 +16,20 @@ export const CONDITION_OPTIONS = [
 export type ConditionValue = (typeof CONDITION_OPTIONS)[number]["value"];
 
 interface AddListingFormProps {
-  onSubmit: (car: Car) => void;
+  onSubmit: (car: Car) => Promise<void> | void;
   onCancel: () => void;
   initialCar?: Car;
+  submitError?: string | null;
+  submitting?: boolean;
 }
 
-export default function AddListingForm({ onSubmit, onCancel, initialCar }: AddListingFormProps) {
+export default function AddListingForm({
+  onSubmit,
+  onCancel,
+  initialCar,
+  submitError = null,
+  submitting = false,
+}: AddListingFormProps) {
   const isEditing = !!initialCar;
 
   const getInitialCondition = (): ConditionValue | "" => {
@@ -102,7 +110,7 @@ export default function AddListingForm({ onSubmit, onCancel, initialCar }: AddLi
     return Object.keys(next).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
@@ -132,7 +140,7 @@ export default function AddListingForm({ onSubmit, onCancel, initialCar }: AddLi
       image: imagePreview || initialCar?.image || undefined,
     };
 
-    onSubmit(car);
+    await Promise.resolve(onSubmit(car));
   };
 
   const inputClass =
@@ -345,18 +353,21 @@ export default function AddListingForm({ onSubmit, onCancel, initialCar }: AddLi
       <div className="flex gap-3 pt-4">
         <button
           type="submit"
+          disabled={submitting}
           className="cursor-pointer rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
         >
-          {isEditing ? "Save Changes" : "Add Listing"}
+          {submitting ? "Saving..." : isEditing ? "Save Changes" : "Add Listing"}
         </button>
         <button
           type="button"
           onClick={onCancel}
+          disabled={submitting}
           className="cursor-pointer rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
         >
           Cancel
         </button>
       </div>
+      {submitError && <p className={errorClass}>{submitError}</p>}
     </form>
   );
 }

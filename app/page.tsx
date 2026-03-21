@@ -1,8 +1,7 @@
-"use client";
-import CarCatalog from "./components/CarCatalog";
+import AuthPage from "./components/AuthPage";
+import { getSessionUser } from "../lib/session";
 
-export default function Home() {
-  return (
-    <CarCatalog />
-  );
+export default async function Home() {
+  const user = await getSessionUser();
+  return <AuthPage initialUser={user} />;
 }
