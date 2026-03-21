@@ -1,28 +1,28 @@
-year,make,model,trim,body,transmission,vin,state,condition,odometer,color,interior,seller,mmr,sellingprice,saledate,deal_rating
-2006,PONTIAC,Torrent,Base,suv,automatic,2ckdl73f566101612,nj,33.0,106225.0,burgundy,beige,wells fargo dealer services,4950.0,5400.0,Wed Jan 07 2015 09:30:00 GMT-0800 (PST),Fair Market
-2011,FORD,Escape,XLT,suv,automatic,1fmcu9dg7bkc44017,oh,33.0,49718.0,black,black,u s auto importing & sales,13800.0,12500.0,Tue Mar 10 2015 02:30:00 GMT-0700 (PDT),Good Price
-2008,FORD,Taurus,SEL,sedan,automatic,1fahp24w98g176305,oh,1.0,119604.0,silver,tan,santander consumer,4575.0,1600.0,Tue Feb 17 2015 05:00:00 GMT-0800 (PST),Great Deal
-2012,NISSAN,Altima,2.5,sedan,automatic,1n4al2ap7cc163417,mo,34.0,41162.0,beige,beige,green toyota,11100.0,12700.0,Tue Jan 06 2015 03:00:00 GMT-0800 (PST),Fair Market
-2010,BMW,3 Series,328i,sedan,automatic,wbaph7g51anm51988,ca,4.0,91609.0,blue,beige,century dealer services corp,11000.0,12200.0,Tue Dec 23 2014 12:00:00 GMT-0800 (PST),Fair Market
-2008,SUZUKI,Forenza,Base,sedan,automatic,kl5jd56z88k807173,nc,24.0,84921.0,black,gray,santander consumer,2450.0,1700.0,Mon Jan 12 2015 09:30:00 GMT-0800 (PST),Good Price
-2005,CHEVROLET,Suburban,1500 LS,suv,automatic,3gnfk16z65g137468,va,34.0,163749.0,blue,beige,prince frederick chrysler jeep dodge inc,5225.0,6500.0,Thu Feb 12 2015 01:35:00 GMT-0800 (PST),Fair Market
-2012,FORD,Edge,Limited,suv,automatic,2fmdk3kc8cba26932,tx,42.0,38489.0,silver,tan,ford motor credit company llc,21100.0,22700.0,Thu Mar 05 2015 02:30:00 GMT-0800 (PST),Fair Market
-2010,FORD,Escape,XLT,suv,automatic,1fmcu9d73akc62710,fl,39.0,72847.0,black,tan,j c auto world inc,9050.0,11000.0,Tue Feb 10 2015 01:30:00 GMT-0800 (PST),Fair Market
-2012,BUICK,Verano,Base,sedan,automatic,1g4pp5sk8c4220503,fl,4.0,35503.0,gray,gray,auto trakk llc,12050.0,11800.0,Thu Feb 12 2015 01:30:00 GMT-0800 (PST),Fair Market
-2013,NISSAN,Leaf,S,hatchback,automatic,1n4az0cp5dc401041,wa,41.0,19507.0,black,black,nissan-infiniti lt,8425.0,7900.0,Wed May 27 2015 05:30:00 GMT-0700 (PDT),Good Price
-2013,NISSAN,Altima,2.5,sedan,automatic,1n4al3apxdn536882,ca,28.0,57080.0,white,black,the hertz corporation,10850.0,11000.0,Wed May 27 2015 05:30:00 GMT-0700 (PDT),Fair Market
-2008,PONTIAC,G6,GT,sedan,automatic,1g2zh57n684189907,co,19.0,143575.0,black,black,wells fargo dealer services,3425.0,3400.0,Wed Feb 04 2015 03:45:00 GMT-0800 (PST),Fair Market
-2009,KIA,Rio,LX,sedan,automatic,knade223796570980,tx,4.0,65585.0,silver,gray,university first federal credit union,4425.0,5000.0,Wed Jan 07 2015 10:05:00 GMT-0800 (PST),Fair Market
-2014,FORD,Fusion,SE,sedan,automatic,1fa6p0h72e5377517,wi,47.0,35746.0,white,black,lease plan usa,14250.0,14300.0,Wed Mar 04 2015 02:00:00 GMT-0800 (PST),Fair Market
-2014,CHRYSLER,Town And Country,Touring,minivan,automatic,2c4rc1bg9er382797,fl,4.0,19354.0,blue,black,enterprise holdings/gdp,19600.0,19800.0,Mon Mar 02 2015 04:30:00 GMT-0800 (PST),Fair Market
-2013,LINCOLN,Mks,Base,sedan,automatic,1lnhl9ek1dg603461,il,48.0,22771.0,silver,black,ford motor credit company llc,23800.0,25400.0,Tue Jun 16 2015 04:00:00 GMT-0700 (PDT),Fair Market
-2012,FORD,Focus,SE,sedan,automatic,1fahp3f2xcl283928,il,44.0,26142.0,gray,black,ford motor credit company llc,10050.0,10200.0,Tue Jan 13 2015 11:00:00 GMT-0800 (PST),Fair Market
-2012,CHEVROLET,Malibu,LT,sedan,automatic,1g1zc5e08cf259138,pa,3.0,24846.0,blue,black,exceptional motorcars ltd,11500.0,12200.0,Wed Jan 28 2015 01:00:00 GMT-0800 (PST),Fair Market
-2007,PONTIAC,Torrent,Base,suv,automatic,2ckdl63f676045627,ca,41.0,103357.0,white,black,ideal transportation,4700.0,4800.0,Wed Jan 07 2015 12:30:00 GMT-0800 (PST),Fair Market
-2014,FORD,Escape,SE,suv,automatic,1fmcu0gx5eua20969,mo,43.0,15736.0,silver,gray,ford motor credit company llc pd,17350.0,17300.0,Tue Jun 09 2015 03:30:00 GMT-0700 (PDT),Fair Market
-2014,NISSAN,Versa Note,1.6 SV,hatchback,automatic,3n1ce2cp8el372864,mo,37.0,39623.0,red,black,avis corporation,9200.0,9400.0,Tue Jun 02 2015 04:00:00 GMT-0700 (PDT),Fair Market
-2008,CHEVROLET,Hhr,LT,wagon,automatic,3gnda23d28s590299,il,,101338.0,silver,tan,bettenhausen motor sales inc,4700.0,3900.0,Thu Dec 18 2014 10:00:00 GMT-0800 (PST),Good Price
-2012,BUICK,Lacrosse,Premium I Group,sedan,automatic,1g4ge5e32cf248313,wi,4.0,26326.0,brown,beige,fiserv/usb dealer services northstar exchange,19750.0,19200.0,Wed Jun 03 2015 03:00:00 GMT-0700 (PDT),Good Price
-2012,NISSAN,Sentra,2,sedan,automatic,3n1ab6ap9cl750276,ca,29.0,77706.0,black,gray,skyhigh remarketing inc,8100.0,7300.0,Wed Jan 28 2015 04:15:00 GMT-0800 (PST),Good Price
-2014,BMW,X6,xDrive35i,suv,automatic,5uxfg2c56e0k41608,oh,5.0,5292.0,white,black,bmw na manheim new jersey,52800.0,54000.0,Tue Jan 27 2015 06:00:00 GMT-0800 (PST),Fair Market
-2004,ACURA,Tsx,Base,sedan,manual,jh4cl95874c022183,ga,31.0,149335.0,gray,gray,roswell auto brokers inc,4800.0,5700.0,Thu Dec 18 2014 10:00:00 GMT-0800 (PST),Fair Market
+year,make,model,trim,body,transmission,vin,state,condition,odometer,color,interior,seller,mmr,sellingprice,saledate,deal_rating,ownerId,ownerEmail,ownerRole
+2006,PONTIAC,Torrent,Base,suv,automatic,2ckdl73f566101612,nj,33.0,106225.0,burgundy,beige,wells fargo dealer services,4950.0,5400.0,Wed Jan 07 2015 09:30:00 GMT-0800 (PST),Fair Market,seed-consumer-001,consumer@carcatalog.local,consumer
+2011,FORD,Escape,XLT,suv,automatic,1fmcu9dg7bkc44017,oh,33.0,49718.0,black,black,u s auto importing & sales,13800.0,12500.0,Tue Mar 10 2015 02:30:00 GMT-0700 (PDT),Good Price,seed-dealer-001,dealer@carcatalog.local,dealer
+2008,FORD,Taurus,SEL,sedan,automatic,1fahp24w98g176305,oh,1.0,119604.0,silver,tan,santander consumer,4575.0,1600.0,Tue Feb 17 2015 05:00:00 GMT-0800 (PST),Great Deal,seed-consumer-001,consumer@carcatalog.local,consumer
+2012,NISSAN,Altima,2.5,sedan,automatic,1n4al2ap7cc163417,mo,34.0,41162.0,beige,beige,green toyota,11100.0,12700.0,Tue Jan 06 2015 03:00:00 GMT-0800 (PST),Fair Market,seed-dealer-001,dealer@carcatalog.local,dealer
+2010,BMW,3 Series,328i,sedan,automatic,wbaph7g51anm51988,ca,4.0,91609.0,blue,beige,century dealer services corp,11000.0,12200.0,Tue Dec 23 2014 12:00:00 GMT-0800 (PST),Fair Market,seed-consumer-001,consumer@carcatalog.local,consumer
+2008,SUZUKI,Forenza,Base,sedan,automatic,kl5jd56z88k807173,nc,24.0,84921.0,black,gray,santander consumer,2450.0,1700.0,Mon Jan 12 2015 09:30:00 GMT-0800 (PST),Good Price,seed-dealer-001,dealer@carcatalog.local,dealer
+2005,CHEVROLET,Suburban,1500 LS,suv,automatic,3gnfk16z65g137468,va,34.0,163749.0,blue,beige,prince frederick chrysler jeep dodge inc,5225.0,6500.0,Thu Feb 12 2015 01:35:00 GMT-0800 (PST),Fair Market,seed-consumer-001,consumer@carcatalog.local,consumer
+2012,FORD,Edge,Limited,suv,automatic,2fmdk3kc8cba26932,tx,42.0,38489.0,silver,tan,ford motor credit company llc,21100.0,22700.0,Thu Mar 05 2015 02:30:00 GMT-0800 (PST),Fair Market,seed-dealer-001,dealer@carcatalog.local,dealer
+2010,FORD,Escape,XLT,suv,automatic,1fmcu9d73akc62710,fl,39.0,72847.0,black,tan,j c auto world inc,9050.0,11000.0,Tue Feb 10 2015 01:30:00 GMT-0800 (PST),Fair Market,seed-consumer-001,consumer@carcatalog.local,consumer
+2012,BUICK,Verano,Base,sedan,automatic,1g4pp5sk8c4220503,fl,4.0,35503.0,gray,gray,auto trakk llc,12050.0,11800.0,Thu Feb 12 2015 01:30:00 GMT-0800 (PST),Fair Market,seed-dealer-001,dealer@carcatalog.local,dealer
+2013,NISSAN,Leaf,S,hatchback,automatic,1n4az0cp5dc401041,wa,41.0,19507.0,black,black,nissan-infiniti lt,8425.0,7900.0,Wed May 27 2015 05:30:00 GMT-0700 (PDT),Good Price,seed-consumer-001,consumer@carcatalog.local,consumer
+2013,NISSAN,Altima,2.5,sedan,automatic,1n4al3apxdn536882,ca,28.0,57080.0,white,black,the hertz corporation,10850.0,11000.0,Wed May 27 2015 05:30:00 GMT-0700 (PDT),Fair Market,seed-dealer-001,dealer@carcatalog.local,dealer
+2008,PONTIAC,G6,GT,sedan,automatic,1g2zh57n684189907,co,19.0,143575.0,black,black,wells fargo dealer services,3425.0,3400.0,Wed Feb 04 2015 03:45:00 GMT-0800 (PST),Fair Market,seed-consumer-001,consumer@carcatalog.local,consumer
+2009,KIA,Rio,LX,sedan,automatic,knade223796570980,tx,4.0,65585.0,silver,gray,university first federal credit union,4425.0,5000.0,Wed Jan 07 2015 10:05:00 GMT-0800 (PST),Fair Market,seed-dealer-001,dealer@carcatalog.local,dealer
+2014,FORD,Fusion,SE,sedan,automatic,1fa6p0h72e5377517,wi,47.0,35746.0,white,black,lease plan usa,14250.0,14300.0,Wed Mar 04 2015 02:00:00 GMT-0800 (PST),Fair Market,seed-consumer-001,consumer@carcatalog.local,consumer
+2014,CHRYSLER,Town And Country,Touring,minivan,automatic,2c4rc1bg9er382797,fl,4.0,19354.0,blue,black,enterprise holdings/gdp,19600.0,19800.0,Mon Mar 02 2015 04:30:00 GMT-0800 (PST),Fair Market,seed-dealer-001,dealer@carcatalog.local,dealer
+2013,LINCOLN,Mks,Base,sedan,automatic,1lnhl9ek1dg603461,il,48.0,22771.0,silver,black,ford motor credit company llc,23800.0,25400.0,Tue Jun 16 2015 04:00:00 GMT-0700 (PDT),Fair Market,seed-consumer-001,consumer@carcatalog.local,consumer
+2012,FORD,Focus,SE,sedan,automatic,1fahp3f2xcl283928,il,44.0,26142.0,gray,black,ford motor credit company llc,10050.0,10200.0,Tue Jan 13 2015 11:00:00 GMT-0800 (PST),Fair Market,seed-dealer-001,dealer@carcatalog.local,dealer
+2012,CHEVROLET,Malibu,LT,sedan,automatic,1g1zc5e08cf259138,pa,3.0,24846.0,blue,black,exceptional motorcars ltd,11500.0,12200.0,Wed Jan 28 2015 01:00:00 GMT-0800 (PST),Fair Market,seed-consumer-001,consumer@carcatalog.local,consumer
+2007,PONTIAC,Torrent,Base,suv,automatic,2ckdl63f676045627,ca,41.0,103357.0,white,black,ideal transportation,4700.0,4800.0,Wed Jan 07 2015 12:30:00 GMT-0800 (PST),Fair Market,seed-dealer-001,dealer@carcatalog.local,dealer
+2014,FORD,Escape,SE,suv,automatic,1fmcu0gx5eua20969,mo,43.0,15736.0,silver,gray,ford motor credit company llc pd,17350.0,17300.0,Tue Jun 09 2015 03:30:00 GMT-0700 (PDT),Fair Market,seed-consumer-001,consumer@carcatalog.local,consumer
+2014,NISSAN,Versa Note,1.6 SV,hatchback,automatic,3n1ce2cp8el372864,mo,37.0,39623.0,red,black,avis corporation,9200.0,9400.0,Tue Jun 02 2015 04:00:00 GMT-0700 (PDT),Fair Market,seed-dealer-001,dealer@carcatalog.local,dealer
+2008,CHEVROLET,Hhr,LT,wagon,automatic,3gnda23d28s590299,il,,101338.0,silver,tan,bettenhausen motor sales inc,4700.0,3900.0,Thu Dec 18 2014 10:00:00 GMT-0800 (PST),Good Price,seed-consumer-001,consumer@carcatalog.local,consumer
+2012,BUICK,Lacrosse,Premium I Group,sedan,automatic,1g4ge5e32cf248313,wi,4.0,26326.0,brown,beige,fiserv/usb dealer services northstar exchange,19750.0,19200.0,Wed Jun 03 2015 03:00:00 GMT-0700 (PDT),Good Price,seed-dealer-001,dealer@carcatalog.local,dealer
+2012,NISSAN,Sentra,2,sedan,automatic,3n1ab6ap9cl750276,ca,29.0,77706.0,black,gray,skyhigh remarketing inc,8100.0,7300.0,Wed Jan 28 2015 04:15:00 GMT-0800 (PST),Good Price,seed-consumer-001,consumer@carcatalog.local,consumer
+2014,BMW,X6,xDrive35i,suv,automatic,5uxfg2c56e0k41608,oh,5.0,5292.0,white,black,bmw na manheim new jersey,52800.0,54000.0,Tue Jan 27 2015 06:00:00 GMT-0800 (PST),Fair Market,seed-dealer-001,dealer@carcatalog.local,dealer
+2004,ACURA,Tsx,Base,sedan,manual,jh4cl95874c022183,ga,31.0,149335.0,gray,gray,roswell auto brokers inc,4800.0,5700.0,Thu Dec 18 2014 10:00:00 GMT-0800 (PST),Fair Market,seed-consumer-001,consumer@carcatalog.local,consumer
