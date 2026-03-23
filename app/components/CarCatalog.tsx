@@ -6,43 +6,17 @@ import type { Car } from "../../types/car";
 import type { SessionUser } from "../../types/user";
 import { cleanSelection } from "../../types/filter";
 import { sortCars } from "../../utils/sortCars";
+import { normalizeVin, dedupeByVin } from "../../utils/dedupeByVin";
+import { getInitials } from "../../utils/formatters";
 import CarCard from "./CarCard";
 import FilterSelection from "./FilterSelection";
 import AddListingForm from "./AddListingForm";
 import UserBox from "./UserBox";
 import CarDetailsModal from "./CarDetailsModal";
 
-function getInitials(name: string): string {
-  return (
-    name
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase() ?? "")
-      .join("") || "CC"
-  );
-}
 
 const SAVED_LISTINGS_KEY = "saved_listings_v1";
 
-function normalizeVin(vin: unknown): string {
-  if (typeof vin !== "string") return "";
-  const trimmed = vin.trim();
-  if (!trimmed || trimmed.toLowerCase() === "undefined" || trimmed.toLowerCase() === "null") return "";
-  return trimmed;
-}
-
-function dedupeByVin(list: Car[]): Car[] {
-  const seen = new Set<string>();
-  const result: Car[] = [];
-  for (const car of list) {
-    const vin = normalizeVin(car?.vin);
-    if (!vin || seen.has(vin)) continue;
-    seen.add(vin);
-    result.push({ ...car, vin });
-  }
-  return result;
-}
 
 export default function CarCatalog({ currentUser }: { currentUser: SessionUser }) {
   const router = useRouter();

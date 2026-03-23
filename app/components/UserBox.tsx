@@ -1,15 +1,7 @@
 'use client';
 
 import type { SessionUser } from "../../types/user";
-
-function getInitials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("") || "CC";
-}
+import { getInitials } from "../../utils/formatters";
 
 function formatRole(role: SessionUser["role"]): string {
   return role.charAt(0).toUpperCase() + role.slice(1);

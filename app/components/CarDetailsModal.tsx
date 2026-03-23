@@ -2,36 +2,11 @@
 
 import Image from "next/image";
 import { Car } from "../../types/car";
-import { CONDITION_OPTIONS } from "./AddListingForm";
 import { getCarImageSrc } from "../../utils/carImage";
-
-function labelFromSnakeCase(value: string) {
-  const found = CONDITION_OPTIONS.find((o) => o.value === value);
-  if (found) return found.label;
-  return value
-    .split("_")
-    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
-    .join(" ");
-}
-
-function formatCondition(condition: Car["condition"]) {
-  if (condition == null || condition === "") return "N/A";
-  if (typeof condition === "string") return labelFromSnakeCase(condition);
-  return `Score: ${condition}`;
-}
+import { formatCondition, formatMoney, formatOdometerKm } from "../../utils/formatters";
 
 function isDataUrl(src: string) {
   return src.startsWith("data:");
-}
-
-function formatMoney(value: number) {
-  if (!isFinite(value)) return "N/A";
-  return value.toLocaleString(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 });
-}
-
-function formatOdometerKm(value: number) {
-  if (!isFinite(value)) return "N/A";
-  return `${value.toLocaleString()} KM`;
 }
 
 function SpecRow({ label, value }: { label: string; value: React.ReactNode }) {
