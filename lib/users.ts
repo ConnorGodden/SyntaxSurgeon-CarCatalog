@@ -34,7 +34,8 @@ type VercelBlobModule = {
 
 async function loadVercelBlobModule(): Promise<VercelBlobModule> {
   try {
-    const mod = (await import("@vercel/blob")) as Partial<VercelBlobModule>;
+    const blobModuleSpecifier = "@vercel/blob";
+    const mod = (await import(blobModuleSpecifier)) as Partial<VercelBlobModule>;
 
     if (typeof mod.put !== "function" || typeof mod.list !== "function") {
       throw new Error("Invalid @vercel/blob exports.");
