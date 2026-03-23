@@ -3,7 +3,6 @@ import "server-only";
 import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
-import { list, put } from "@vercel/blob";
 import { stringifyCsv, parseCsvText } from "../utils/csv";
 import { USER_ROLES, type UserRecord, type UserRole } from "../types/user";
 
@@ -15,6 +14,39 @@ const USER_HEADERS = ["id", "fullName", "email", "password", "role", "createdAt"
 
 function isVercelRuntime(): boolean {
   return process.env.VERCEL === "1" || Boolean(process.env.VERCEL_ENV);
+}
+
+type VercelBlobModule = {
+  put: (
+    pathname: string,
+    body: string,
+    options: {
+      access: "public";
+      addRandomSuffix: boolean;
+      allowOverwrite: boolean;
+      contentType: string;
+    },
+  ) => Promise<unknown>;
+  list: (options: { prefix: string; limit: number }) => Promise<{
+    blobs: Array<{ pathname: string; url: string }>;
+  }>;
+};
+
+async function loadVercelBlobModule(): Promise<VercelBlobModule> {
+  try {
+    const dynamicImport = new Function("specifier", "return import(specifier);") as (
+      specifier: string,
+    ) => Promise<unknown>;
+    const mod = (await dynamicImport("@vercel/blob")) as Partial<VercelBlobModule>;
+
+    if (typeof mod.put !== "function" || typeof mod.list !== "function") {
+      throw new Error("Invalid @vercel/blob exports.");
+    }
+
+    return mod as VercelBlobModule;
+  } catch {
+    throw new Error("Vercel Blob storage is configured, but @vercel/blob is not available at runtime.");
+  }
 }
 
 export const SEEDED_USERS: UserRecord[] = [
@@ -101,6 +133,7 @@ async function writeUsers(users: UserRecord[]): Promise<void> {
   })));
 
   if (isVercelRuntime()) {
+    const { put } = await loadVercelBlobModule();
     await put(USERS_BLOB_PATH, `${content}\n`, {
       access: "public",
       addRandomSuffix: false,
@@ -119,6 +152,7 @@ async function readUsersCsv(): Promise<string> {
     return readFile(USERS_CSV_PATH, "utf8");
   }
 
+  const { list } = await loadVercelBlobModule();
   const { blobs } = await list({ prefix: USERS_BLOB_PATH, limit: 1000 });
   const usersBlob = blobs.find((blob) => blob.pathname === USERS_BLOB_PATH);
 
