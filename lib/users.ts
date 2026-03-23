@@ -12,10 +12,10 @@ const USERS_BLOB_PATH = "data/users.csv";
 
 const USER_HEADERS = ["id", "fullName", "email", "password", "role", "createdAt", "isActive"] as const;
 
+//#region Vercel Blob Storage Helpers
 function isVercelRuntime(): boolean {
   return process.env.VERCEL === "1" || Boolean(process.env.VERCEL_ENV);
 }
-
 type VercelBlobModule = {
   put: (
     pathname: string,
@@ -31,7 +31,6 @@ type VercelBlobModule = {
     blobs: Array<{ pathname: string; url: string }>;
   }>;
 };
-
 async function loadVercelBlobModule(): Promise<VercelBlobModule> {
   try {
     const blobModuleSpecifier = "@vercel/blob";
@@ -47,6 +46,7 @@ async function loadVercelBlobModule(): Promise<VercelBlobModule> {
     throw new Error(`Vercel Blob storage is configured, but @vercel/blob is not available at runtime. ${message}`);
   }
 }
+//#endregion
 
 export const SEEDED_USERS: UserRecord[] = [
   {
