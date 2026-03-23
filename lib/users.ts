@@ -34,18 +34,16 @@ type VercelBlobModule = {
 
 async function loadVercelBlobModule(): Promise<VercelBlobModule> {
   try {
-    const dynamicImport = new Function("specifier", "return import(specifier);") as (
-      specifier: string,
-    ) => Promise<unknown>;
-    const mod = (await dynamicImport("@vercel/blob")) as Partial<VercelBlobModule>;
+    const mod = (await import("@vercel/blob")) as Partial<VercelBlobModule>;
 
     if (typeof mod.put !== "function" || typeof mod.list !== "function") {
       throw new Error("Invalid @vercel/blob exports.");
     }
 
     return mod as VercelBlobModule;
-  } catch {
-    throw new Error("Vercel Blob storage is configured, but @vercel/blob is not available at runtime.");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Vercel Blob storage is configured, but @vercel/blob is not available at runtime. ${message}`);
   }
 }
 
