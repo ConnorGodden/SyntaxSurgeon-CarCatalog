@@ -1,3 +1,6 @@
+import { parseCsvText } from "../utils/csv";
+import type { UserRole } from "./user";
+
 export interface Car {
   year: number;
   make: string;
@@ -17,37 +20,54 @@ export interface Car {
   saledate: string;
   deal_rating: "Great Deal" | "Good Price" | "Fair Market";
   image?: string;
+  ownerId?: string;
+  ownerEmail?: string;
+  ownerRole?: UserRole;
 }
 
 export function parseCsv(text: string): Car[] {
-  const lines = text.trim().split("\n");
-  if (lines.length < 2) return [];
-  const headers = lines[0].split(",");
-  return lines.slice(1).map((line) => {
-    const values = line.split(",");
-    const car: Record<string, string> = {};
-    headers.forEach((h, i) => (car[h.trim()] = values[i]?.trim() ?? ""));
-    return {
-      year: Number(car.year || 0),
-      make: car.make ?? "",
-      model: car.model ?? "",
-      trim: car.trim !== "" ? car.trim : null,
-      body: car.body ?? "",
-      transmission: car.transmission !== "" ? car.transmission : null,
-      vin: car.vin ?? "",
-      state: car.state ?? "",
-      condition: car.condition !== "" ? Number(car.condition) : null,
-      odometer: Number(car.odometer || 0),
-      color: car.color ?? "",
-      interior: car.interior ?? "",
-      seller: car.seller ?? "",
-      mmr: Number(car.mmr || 0),
-      sellingprice: Number(car.sellingprice || 0),
-      saledate: car.saledate ?? "",
+  const parsed = parseCsvText(text);
+  if (parsed.headers.length === 0) return [];
+
+  return parsed.rows.flatMap((row) => {
+    const year = Number(row.year || 0);
+    const odometer = Number(row.odometer || 0);
+    const mmr = Number(row.mmr || 0);
+    const sellingprice = Number(row.sellingprice || 0);
+    const rawCondition = row.condition ?? "";
+    const numericCondition = Number(rawCondition);
+
+    if (!row.make || !row.model || !row.vin) {
+      return [];
+    }
+
+    return [{
+      year,
+      make: row.make ?? "",
+      model: row.model ?? "",
+      trim: row.trim !== "" ? row.trim : null,
+      body: row.body ?? "",
+      transmission: row.transmission !== "" ? row.transmission : null,
+      vin: row.vin ?? "",
+      state: row.state ?? "",
+      condition: rawCondition === "" ? null : (Number.isNaN(numericCondition) ? rawCondition : numericCondition),
+      odometer,
+      color: row.color ?? "",
+      interior: row.interior ?? "",
+      seller: row.seller ?? "",
+      mmr,
+      sellingprice,
+      saledate: row.saledate ?? "",
       deal_rating:
-        car.deal_rating === "Great Deal" || car.deal_rating === "Good Price" || car.deal_rating === "Fair Market"
-          ? car.deal_rating
+        row.deal_rating === "Great Deal" || row.deal_rating === "Good Price" || row.deal_rating === "Fair Market"
+          ? row.deal_rating
           : "Fair Market",
-    };
+      ownerId: row.ownerId?.trim() || undefined,
+      ownerEmail: row.ownerEmail?.trim() || undefined,
+      ownerRole:
+        row.ownerRole === "consumer" || row.ownerRole === "dealer" || row.ownerRole === "admin"
+          ? row.ownerRole
+          : undefined,
+    }];
   });
 }

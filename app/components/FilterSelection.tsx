@@ -35,7 +35,7 @@ export default function FilterSelection({
                         <select
                             value={selections[option] ?? ""}
                             onChange={(e) => onSelectionChange({ ...selections, [option]: e.target.value })}
-                            className={`w-full rounded-lg border border-zinc-200 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600 ${collapsed ? "px-2 text-center" : "px-4"}`}
+                            className={`cursor-pointer w-full rounded-lg border border-zinc-200 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600 ${collapsed ? "px-2 text-center" : "px-4"}`}
                         >
                             <option value="">All</option>
                             {option === "condition"

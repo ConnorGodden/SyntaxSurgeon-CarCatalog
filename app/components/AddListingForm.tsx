@@ -16,27 +16,50 @@ export const CONDITION_OPTIONS = [
 export type ConditionValue = (typeof CONDITION_OPTIONS)[number]["value"];
 
 interface AddListingFormProps {
-  onSubmit: (car: Car) => void;
+  onSubmit: (car: Car) => Promise<void> | void;
   onCancel: () => void;
+  initialCar?: Car;
+  submitError?: string | null;
+  submitting?: boolean;
 }
 
-export default function AddListingForm({ onSubmit, onCancel }: AddListingFormProps) {
+export default function AddListingForm({
+  onSubmit,
+  onCancel,
+  initialCar,
+  submitError = null,
+  submitting = false,
+}: AddListingFormProps) {
+  const isEditing = !!initialCar;
+
+  const getInitialCondition = (): ConditionValue | "" => {
+    if (!initialCar) return "";
+    const c = initialCar.condition;
+    if (typeof c === "string") {
+      const found = CONDITION_OPTIONS.find((o) => o.value === c);
+      return found ? (c as ConditionValue) : "";
+    }
+    return "";
+  };
+
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    initialCar?.image?.startsWith("data:") ? initialCar.image : null
+  );
   const [formData, setFormData] = useState({
-    year: "",
-    make: "",
-    model: "",
-    trim: "",
-    body: "",
-    transmission: "",
-    vin: "",
-    state: "",
-    condition: "" as ConditionValue | "",
-    odometer: "",
-    color: "",
-    interior: "",
-    sellPrice: "",
+    year: initialCar ? String(initialCar.year) : "",
+    make: initialCar?.make ?? "",
+    model: initialCar?.model ?? "",
+    trim: initialCar?.trim ?? "",
+    body: initialCar?.body ?? "",
+    transmission: initialCar?.transmission ?? "",
+    vin: initialCar?.vin ?? "",
+    state: initialCar?.state ?? "",
+    condition: getInitialCondition(),
+    odometer: initialCar ? String(initialCar.odometer) : "",
+    color: initialCar?.color ?? "",
+    interior: initialCar?.interior ?? "",
+    sellPrice: initialCar ? String(initialCar.sellingprice) : "",
   });
 
   const updateField = (field: string, value: string) => {
@@ -87,7 +110,7 @@ export default function AddListingForm({ onSubmit, onCancel }: AddListingFormPro
     return Object.keys(next).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
@@ -96,6 +119,7 @@ export default function AddListingForm({ onSubmit, onCancel }: AddListingFormPro
     const sellingprice = parseFloat(formData.sellPrice.split(",").join(""));
 
     const car: Car = {
+      ...(initialCar ?? {}),
       year,
       make: formData.make.trim(),
       model: formData.model.trim(),
@@ -108,15 +132,15 @@ export default function AddListingForm({ onSubmit, onCancel }: AddListingFormPro
       odometer,
       color: formData.color.trim() || "",
       interior: formData.interior.trim() || "",
-      seller: "",
-      mmr: 0,
+      seller: initialCar?.seller ?? "",
+      mmr: initialCar?.mmr ?? 0,
       sellingprice,
-      saledate: "",
-      deal_rating: "Fair Market",
-      image: imagePreview || undefined,
+      saledate: initialCar?.saledate ?? "",
+      deal_rating: initialCar?.deal_rating ?? "Fair Market",
+      image: imagePreview || initialCar?.image || undefined,
     };
 
-    onSubmit(car);
+    await Promise.resolve(onSubmit(car));
   };
 
   const inputClass =
@@ -125,8 +149,8 @@ export default function AddListingForm({ onSubmit, onCancel }: AddListingFormPro
   const errorClass = "mt-1 text-xs text-red-500";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto">
-      <h2 className="text-xl font-semibold">Add New Listing</h2>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <h2 className="text-xl font-semibold">{isEditing ? "Edit Listing" : "Add New Listing"}</h2>
 
       <div>
         <label className={labelClass}>Year</label>
@@ -210,9 +234,10 @@ export default function AddListingForm({ onSubmit, onCancel }: AddListingFormPro
         <input
           type="text"
           value={formData.vin}
-          onChange={(e) => updateField("vin", e.target.value)}
+          onChange={(e) => !isEditing && updateField("vin", e.target.value)}
           placeholder="Vehicle Identification Number"
-          className={inputClass}
+          className={`${inputClass} ${isEditing ? "opacity-60 cursor-not-allowed" : ""}`}
+          readOnly={isEditing}
           required
         />
         <p className={errorClass}>{errors.vin}</p>
@@ -234,7 +259,7 @@ export default function AddListingForm({ onSubmit, onCancel }: AddListingFormPro
         <select
           value={formData.condition}
           onChange={(e) => updateField("condition", e.target.value as ConditionValue)}
-          className={inputClass}
+          className={`cursor-pointer ${inputClass}`}
           required
         >
           <option value="">Select condition</option>
@@ -328,18 +353,21 @@ export default function AddListingForm({ onSubmit, onCancel }: AddListingFormPro
       <div className="flex gap-3 pt-4">
         <button
           type="submit"
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          disabled={submitting}
+          className="cursor-pointer rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
         >
-          Add Listing
+          {submitting ? "Saving..." : isEditing ? "Save Changes" : "Add Listing"}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+          disabled={submitting}
+          className="cursor-pointer rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
         >
           Cancel
         </button>
       </div>
+      {submitError && <p className={errorClass}>{submitError}</p>}
     </form>
   );
 }

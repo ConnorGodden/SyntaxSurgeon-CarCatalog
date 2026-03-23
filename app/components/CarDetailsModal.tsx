@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Car } from "../../types/car";
 import { CONDITION_OPTIONS } from "./AddListingForm";
+import { getCarImageSrc } from "../../utils/carImage";
 
 function labelFromSnakeCase(value: string) {
   const found = CONDITION_OPTIONS.find((o) => o.value === value);
@@ -17,10 +18,6 @@ function formatCondition(condition: Car["condition"]) {
   if (condition == null || condition === "") return "N/A";
   if (typeof condition === "string") return labelFromSnakeCase(condition);
   return `Score: ${condition}`;
-}
-
-function imageSrc(car: Car) {
-  return car.image?.trim() || "/cars/placeholder.svg";
 }
 
 function isDataUrl(src: string) {
@@ -56,8 +53,13 @@ export default function CarDetailsModal({
   onClose: () => void;
   onSave: (car: Car) => void;
   isSaved: boolean;
+  onEdit,
+}: {
+  car: Car;
+  onClose: () => void;
+  onEdit?: (car: Car) => void;
 }) {
-  const src = imageSrc(car);
+  const src = getCarImageSrc(car);
 
   return (
     <div
@@ -81,13 +83,24 @@ export default function CarDetailsModal({
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
-          >
-            Close
-          </button>
+          <div className="flex items-center gap-2">
+            {onEdit && (
+              <button
+                type="button"
+                onClick={() => onEdit(car)}
+                className="cursor-pointer inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+              >
+                Edit
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="cursor-pointer inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+            >
+              Close
+            </button>
+          </div>
         </div>
 
         <div className="grid gap-6 p-6 lg:grid-cols-5">
