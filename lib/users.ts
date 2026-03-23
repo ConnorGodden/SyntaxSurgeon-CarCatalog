@@ -176,7 +176,11 @@ export async function ensureUsersSeeded(): Promise<void> {
 
   try {
     await readUsersCsv();
-  } catch {
+  } catch (error) {
+    const err = error as NodeJS.ErrnoException;
+    if (err.code !== "ENOENT") {
+      throw error;
+    }
     await writeUsers(SEEDED_USERS);
   }
 }
