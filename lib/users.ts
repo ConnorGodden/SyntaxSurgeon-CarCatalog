@@ -3,13 +3,19 @@ import "server-only";
 import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
+import { list, put } from "@vercel/blob";
 import { stringifyCsv, parseCsvText } from "../utils/csv";
 import { USER_ROLES, type UserRecord, type UserRole } from "../types/user";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const USERS_CSV_PATH = path.join(DATA_DIR, "users.csv");
+const USERS_BLOB_PATH = "data/users.csv";
 
 const USER_HEADERS = ["id", "fullName", "email", "password", "role", "createdAt", "isActive"] as const;
+
+function isVercelRuntime(): boolean {
+  return process.env.VERCEL === "1" || Boolean(process.env.VERCEL_ENV);
+}
 
 export const SEEDED_USERS: UserRecord[] = [
   {
@@ -89,19 +95,54 @@ function validateUserRow(row: Record<string, string>, rowNumber: number): UserRe
 }
 
 async function writeUsers(users: UserRecord[]): Promise<void> {
-  await mkdir(DATA_DIR, { recursive: true });
   const content = stringifyCsv([...USER_HEADERS], users.map((user) => ({
     ...user,
     isActive: user.isActive ? "true" : "false",
   })));
+
+  if (isVercelRuntime()) {
+    await put(USERS_BLOB_PATH, `${content}\n`, {
+      access: "public",
+      addRandomSuffix: false,
+      allowOverwrite: true,
+      contentType: "text/csv",
+    });
+    return;
+  }
+
+  await mkdir(DATA_DIR, { recursive: true });
   await writeFile(USERS_CSV_PATH, `${content}\n`, "utf8");
 }
 
+async function readUsersCsv(): Promise<string> {
+  if (!isVercelRuntime()) {
+    return readFile(USERS_CSV_PATH, "utf8");
+  }
+
+  const { blobs } = await list({ prefix: USERS_BLOB_PATH, limit: 1000 });
+  const usersBlob = blobs.find((blob) => blob.pathname === USERS_BLOB_PATH);
+
+  if (!usersBlob) {
+    const error = new Error("Users CSV blob not found.");
+    (error as NodeJS.ErrnoException).code = "ENOENT";
+    throw error;
+  }
+
+  const response = await fetch(usersBlob.url);
+  if (!response.ok) {
+    throw new Error(`Failed to read users blob: ${response.status} ${response.statusText}`);
+  }
+
+  return response.text();
+}
+
 export async function ensureUsersSeeded(): Promise<void> {
-  await mkdir(DATA_DIR, { recursive: true });
+  if (!isVercelRuntime()) {
+    await mkdir(DATA_DIR, { recursive: true });
+  }
 
   try {
-    await readFile(USERS_CSV_PATH, "utf8");
+    await readUsersCsv();
   } catch {
     await writeUsers(SEEDED_USERS);
   }
@@ -109,7 +150,7 @@ export async function ensureUsersSeeded(): Promise<void> {
 
 export async function readUsers(): Promise<{ users: UserRecord[]; malformedRows: number }> {
   await ensureUsersSeeded();
-  const raw = await readFile(USERS_CSV_PATH, "utf8");
+  const raw = await readUsersCsv();
   const parsed = parseCsvText(raw);
 
   const users: UserRecord[] = [];
