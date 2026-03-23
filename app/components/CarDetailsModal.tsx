@@ -46,6 +46,13 @@ function SpecRow({ label, value }: { label: string; value: React.ReactNode }) {
 export default function CarDetailsModal({
   car,
   onClose,
+  onSave,
+  isSaved,
+}: {
+  car: Car;
+  onClose: () => void;
+  onSave: (car: Car) => void;
+  isSaved: boolean;
   onEdit,
 }: {
   car: Car;
@@ -126,6 +133,18 @@ export default function CarDetailsModal({
                   <span className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-semibold text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200">
                     {car.deal_rating}
                   </span>
+                </div>
+                <div className="mt-3 rounded-lg bg-zinc-100 p-2 dark:bg-zinc-900">
+                  <button
+                    type="button"
+                    onClick={() => onSave(car)}
+                    className={`inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold transition ${isSaved
+                        ? "border border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700/60 dark:bg-emerald-900/20 dark:text-emerald-300"
+                        : "bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                      }`}
+                  >
+                    {isSaved ? "Saved Listing" : "Save Listing"}
+                  </button>
                 </div>
               </div>
             </div>

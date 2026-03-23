@@ -26,8 +26,6 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
   const [cars, setCars] = useState<Car[]>([]);
   const [query, setQuery] = useState("");
   const [selections, setSelections] = useState<Record<string, string>>({});
-  const [sortBy, setSortBy] = useState<"" | "price" | "mileage" | "year" | "newest">("");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [showAddForm, setShowAddForm] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -47,6 +45,47 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
     setLoading(true);
     setLoadError(null);
 
+  const dedupeByVin = (list: Car[]) => {
+    const seen = new Set<string>();
+    const result: Car[] = [];
+    for (const car of list) {
+      const vin = normalizeVin(car?.vin);
+      if (!vin || seen.has(vin)) continue;
+      seen.add(vin);
+      result.push({ ...car, vin });
+    }
+    return result;
+  };
+
+  const loadUserListings = (): Car[] => {
+    try {
+      const raw = localStorage.getItem(USER_LISTINGS_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw) as unknown;
+      if (!Array.isArray(parsed)) return [];
+      return dedupeByVin(parsed as Car[]);
+    } catch {
+      return [];
+    }
+  };
+
+  const persistUserListings = (next: Car[]) => {
+    try {
+      localStorage.setItem(USER_LISTINGS_KEY, JSON.stringify(dedupeByVin(next)));
+    } catch {
+      // ignore
+    }
+  };
+
+  const loadSavedListings = (): Car[] => {
+    try {
+      const raw = localStorage.getItem(SAVED_LISTINGS_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw) as unknown;
+      if (!Array.isArray(parsed)) return [];
+      return dedupeByVin(parsed as Car[]);
+    } catch {
+      return [];
     try {
       const response = await fetch("/api/listings", { cache: "no-store" });
       const payload = await response.json();
@@ -75,6 +114,28 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
     setSaving(true);
 
     try {
+      localStorage.setItem(SAVED_LISTINGS_KEY, JSON.stringify(dedupeByVin(next)));
+    } catch {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    setSavedListings(loadSavedListings());
+    fetch("/cars.csv")
+      .then((res) => res.text())
+      .then((text) => {
+        const csvCars = parseCsv(text);
+        const userListings = loadUserListings();
+        const userListingVins = new Set(userListings.map((c) => normalizeVin(c.vin)));
+        const merged = [
+          ...userListings,
+          ...csvCars.filter((c) => {
+            const v = normalizeVin(c.vin);
+            return v && !userListingVins.has(v);
+          }),
+        ];
+        setCars(merged);
       const response = await fetch("/api/listings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -132,6 +193,13 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
         throw new Error(payload.error || "Logout failed.");
       }
 
+  const handleAddListing = (car: Car) => {
+    const vin = normalizeVin(car.vin);
+    const nextCar = { ...car, vin };
+    setCars((prev) => [nextCar, ...prev]);
+    const nextUserListings = [nextCar, ...loadUserListings().filter((c) => normalizeVin(c.vin) !== vin)];
+    persistUserListings(nextUserListings);
+    setShowAddForm(false);
       router.push("/");
       router.refresh();
     } catch (error) {
@@ -151,11 +219,35 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
     });
   }, [cars, query]);
 
-  const visibleCars = useMemo(() => {
-    const base = cleanSelection(filtered, selections);
-    if (!sortBy) return base;
-    return sortCars(base, sortBy, sortDirection);
-  }, [filtered, selections, sortBy, sortDirection]);
+  const visibleCars = useMemo(() => cleanSelection(filtered, selections), [filtered, selections]);
+  const visibleSavedListings = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const base = cleanSelection(savedListings, selections);
+    if (!q) return base;
+    return base.filter((car) => {
+      const haystack = `${car.make} ${car.model} ${car.deal_rating} ${car.year} ${car.body}`.toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [savedListings, selections, query]);
+
+  const handleSaveListing = (car: Car) => {
+    const vin = normalizeVin(car.vin);
+    if (!vin) return;
+    const nextSaved = [{ ...car, vin }, ...savedListings.filter((c) => normalizeVin(c.vin) !== vin)];
+    setSavedListings(nextSaved);
+    persistSavedListings(nextSaved);
+  };
+
+  const handleRemoveSavedListing = (vin: string) => {
+    const nextSaved = savedListings.filter((car) => normalizeVin(car.vin) !== vin);
+    setSavedListings(nextSaved);
+    persistSavedListings(nextSaved);
+  };
+
+  const isCarSaved = (car: Car) => {
+    const vin = normalizeVin(car.vin);
+    return !!vin && savedListings.some((saved) => normalizeVin(saved.vin) === vin);
+  };
 
   const totalPages = Math.max(1, Math.ceil(visibleCars.length / PAGE_SIZE));
   const pagedCars = visibleCars.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
@@ -334,6 +426,51 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
           <CarDetailsModal
             car={activeCar}
             onClose={() => setActiveCar(null)}
+            onSave={handleSaveListing}
+            isSaved={isCarSaved(activeCar)}
+          />
+        )}
+
+        <div className="mb-6">
+          <input
+            type="text"
+            placeholder={showSavedListings ? "Search saved listings..." : "Search cars..."}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="flex-1 rounded-lg border border-zinc-200 px-4 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600"
+          />
+        </div>
+
+        <div className="overflow-y-auto flex-1">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {(showSavedListings ? visibleSavedListings : visibleCars).map((car, i) => (
+              <div key={car.vin || i} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setActiveCar(car)}
+                  className="w-full text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950 rounded-lg"
+                >
+                  <CarCard car={car} />
+                </button>
+                {showSavedListings && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSavedListing(normalizeVin(car.vin))}
+                    className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border border-rose-200 bg-white/95 px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm transition hover:bg-rose-50 dark:border-rose-700/60 dark:bg-zinc-900/95 dark:text-rose-300 dark:hover:bg-rose-950/30"
+                    aria-label="Remove saved listing"
+                  >
+                    <span aria-hidden="true">✕</span>
+                    Remove
+                  </button>
+                )}
+              </div>
+            ))}
+            {showSavedListings && visibleSavedListings.length === 0 && (
+              <div className="col-span-full rounded-xl border border-dashed border-zinc-300 p-8 text-center text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">
+                No saved listings yet. Open any car and click "Save Listing".
+              </div>
+            )}
+          </div>
             onEdit={(car) => {
               setSaveError(null);
               setActiveCar(null);
