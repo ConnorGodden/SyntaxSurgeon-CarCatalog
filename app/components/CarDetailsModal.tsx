@@ -48,15 +48,12 @@ export default function CarDetailsModal({
   onClose,
   onSave,
   isSaved,
+  onEdit,
 }: {
   car: Car;
   onClose: () => void;
   onSave: (car: Car) => void;
   isSaved: boolean;
-  onEdit,
-}: {
-  car: Car;
-  onClose: () => void;
   onEdit?: (car: Car) => void;
 }) {
   const src = getCarImageSrc(car);

@@ -13,12 +13,35 @@ import UserBox from "./UserBox";
 import CarDetailsModal from "./CarDetailsModal";
 
 function getInitials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("") || "CC";
+  return (
+    name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? "")
+      .join("") || "CC"
+  );
+}
+
+const SAVED_LISTINGS_KEY = "saved_listings_v1";
+
+function normalizeVin(vin: unknown): string {
+  if (typeof vin !== "string") return "";
+  const trimmed = vin.trim();
+  if (!trimmed || trimmed.toLowerCase() === "undefined" || trimmed.toLowerCase() === "null") return "";
+  return trimmed;
+}
+
+function dedupeByVin(list: Car[]): Car[] {
+  const seen = new Set<string>();
+  const result: Car[] = [];
+  for (const car of list) {
+    const vin = normalizeVin(car?.vin);
+    if (!vin || seen.has(vin)) continue;
+    seen.add(vin);
+    result.push({ ...car, vin });
+  }
+  return result;
 }
 
 export default function CarCatalog({ currentUser }: { currentUser: SessionUser }) {
@@ -26,6 +49,8 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
   const [cars, setCars] = useState<Car[]>([]);
   const [query, setQuery] = useState("");
   const [selections, setSelections] = useState<Record<string, string>>({});
+  const [sortBy, setSortBy] = useState<"" | "price" | "mileage" | "year" | "newest">("");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [showAddForm, setShowAddForm] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -37,47 +62,13 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [savedListings, setSavedListings] = useState<Car[]>([]);
+  const [showSavedListings, setShowSavedListings] = useState(false);
   const PAGE_SIZE = 12;
 
   const resetPage = () => setCurrentPage(1);
 
-  const loadListings = async () => {
-    setLoading(true);
-    setLoadError(null);
-
-  const dedupeByVin = (list: Car[]) => {
-    const seen = new Set<string>();
-    const result: Car[] = [];
-    for (const car of list) {
-      const vin = normalizeVin(car?.vin);
-      if (!vin || seen.has(vin)) continue;
-      seen.add(vin);
-      result.push({ ...car, vin });
-    }
-    return result;
-  };
-
-  const loadUserListings = (): Car[] => {
-    try {
-      const raw = localStorage.getItem(USER_LISTINGS_KEY);
-      if (!raw) return [];
-      const parsed = JSON.parse(raw) as unknown;
-      if (!Array.isArray(parsed)) return [];
-      return dedupeByVin(parsed as Car[]);
-    } catch {
-      return [];
-    }
-  };
-
-  const persistUserListings = (next: Car[]) => {
-    try {
-      localStorage.setItem(USER_LISTINGS_KEY, JSON.stringify(dedupeByVin(next)));
-    } catch {
-      // ignore
-    }
-  };
-
-  const loadSavedListings = (): Car[] => {
+  const loadSavedFromStorage = (): Car[] => {
     try {
       const raw = localStorage.getItem(SAVED_LISTINGS_KEY);
       if (!raw) return [];
@@ -86,17 +77,29 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
       return dedupeByVin(parsed as Car[]);
     } catch {
       return [];
+    }
+  };
+
+  const persistSaved = (next: Car[]) => {
+    try {
+      localStorage.setItem(SAVED_LISTINGS_KEY, JSON.stringify(dedupeByVin(next)));
+    } catch {
+      // ignore storage failures
+    }
+  };
+
+  const loadListings = async () => {
+    setLoading(true);
+    setLoadError(null);
     try {
       const response = await fetch("/api/listings", { cache: "no-store" });
       const payload = await response.json();
-
       if (!response.ok || !payload.ok || !Array.isArray(payload.data)) {
         throw new Error(payload.error || "Failed to load listings.");
       }
-
       setCars(payload.data as Car[]);
       if (payload.meta?.malformedRows) {
-        setLoadError(`Loaded listings with ${payload.meta.malformedRows} malformed CSV row(s) skipped.`);
+        setLoadError(`Loaded with ${payload.meta.malformedRows} malformed CSV row(s) skipped.`);
       }
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : "Failed to load listings.");
@@ -106,47 +109,23 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
   };
 
   useEffect(() => {
+    setSavedListings(loadSavedFromStorage());
     void loadListings();
   }, []);
 
   const handleAddListing = async (car: Car) => {
     setSaveError(null);
     setSaving(true);
-
     try {
-      localStorage.setItem(SAVED_LISTINGS_KEY, JSON.stringify(dedupeByVin(next)));
-    } catch {
-      // ignore
-    }
-  };
-
-  useEffect(() => {
-    setSavedListings(loadSavedListings());
-    fetch("/cars.csv")
-      .then((res) => res.text())
-      .then((text) => {
-        const csvCars = parseCsv(text);
-        const userListings = loadUserListings();
-        const userListingVins = new Set(userListings.map((c) => normalizeVin(c.vin)));
-        const merged = [
-          ...userListings,
-          ...csvCars.filter((c) => {
-            const v = normalizeVin(c.vin);
-            return v && !userListingVins.has(v);
-          }),
-        ];
-        setCars(merged);
       const response = await fetch("/api/listings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(car),
       });
       const payload = await response.json();
-
       if (!response.ok || !payload.ok || !payload.data) {
         throw new Error(payload.error || "Failed to create listing.");
       }
-
       setCars((prev) => [payload.data as Car, ...prev]);
       setShowAddForm(false);
     } catch (error) {
@@ -159,7 +138,6 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
   const handleEditListing = async (car: Car) => {
     setSaveError(null);
     setSaving(true);
-
     try {
       const response = await fetch("/api/listings", {
         method: "PUT",
@@ -167,12 +145,12 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
         body: JSON.stringify(car),
       });
       const payload = await response.json();
-
       if (!response.ok || !payload.ok || !payload.data) {
         throw new Error(payload.error || "Failed to update listing.");
       }
-
-      setCars((prev) => prev.map((existing) => (existing.vin === car.vin ? payload.data as Car : existing)));
+      setCars((prev) =>
+        prev.map((existing) => (existing.vin === car.vin ? (payload.data as Car) : existing)),
+      );
       setEditCar(null);
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : "Failed to update listing.");
@@ -184,22 +162,12 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
   const handleLogout = async () => {
     setLoggingOut(true);
     setLoadError(null);
-
     try {
       const response = await fetch("/api/auth/logout", { method: "POST" });
       const payload = await response.json();
-
       if (!response.ok || !payload.ok) {
         throw new Error(payload.error || "Logout failed.");
       }
-
-  const handleAddListing = (car: Car) => {
-    const vin = normalizeVin(car.vin);
-    const nextCar = { ...car, vin };
-    setCars((prev) => [nextCar, ...prev]);
-    const nextUserListings = [nextCar, ...loadUserListings().filter((c) => normalizeVin(c.vin) !== vin)];
-    persistUserListings(nextUserListings);
-    setShowAddForm(false);
       router.push("/");
       router.refresh();
     } catch (error) {
@@ -209,39 +177,18 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
     }
   };
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return cars;
-
-    return cars.filter((car) => {
-      const haystack = `${car.make} ${car.model} ${car.deal_rating} ${car.year} ${car.body}`.toLowerCase();
-      return haystack.includes(q);
-    });
-  }, [cars, query]);
-
-  const visibleCars = useMemo(() => cleanSelection(filtered, selections), [filtered, selections]);
-  const visibleSavedListings = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const base = cleanSelection(savedListings, selections);
-    if (!q) return base;
-    return base.filter((car) => {
-      const haystack = `${car.make} ${car.model} ${car.deal_rating} ${car.year} ${car.body}`.toLowerCase();
-      return haystack.includes(q);
-    });
-  }, [savedListings, selections, query]);
-
   const handleSaveListing = (car: Car) => {
     const vin = normalizeVin(car.vin);
     if (!vin) return;
-    const nextSaved = [{ ...car, vin }, ...savedListings.filter((c) => normalizeVin(c.vin) !== vin)];
-    setSavedListings(nextSaved);
-    persistSavedListings(nextSaved);
+    const next = [{ ...car, vin }, ...savedListings.filter((c) => normalizeVin(c.vin) !== vin)];
+    setSavedListings(next);
+    persistSaved(next);
   };
 
   const handleRemoveSavedListing = (vin: string) => {
-    const nextSaved = savedListings.filter((car) => normalizeVin(car.vin) !== vin);
-    setSavedListings(nextSaved);
-    persistSavedListings(nextSaved);
+    const next = savedListings.filter((car) => normalizeVin(car.vin) !== vin);
+    setSavedListings(next);
+    persistSaved(next);
   };
 
   const isCarSaved = (car: Car) => {
@@ -249,11 +196,39 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
     return !!vin && savedListings.some((saved) => normalizeVin(saved.vin) === vin);
   };
 
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return cars;
+    return cars.filter((car) => {
+      const haystack =
+        `${car.make} ${car.model} ${car.deal_rating} ${car.year} ${car.body}`.toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [cars, query]);
+
+  const visibleCars = useMemo(() => {
+    const base = cleanSelection(filtered, selections);
+    if (!sortBy) return base;
+    return sortCars(base, sortBy, sortDirection);
+  }, [filtered, selections, sortBy, sortDirection]);
+
+  const visibleSavedListings = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const base = cleanSelection(savedListings, selections);
+    if (!q) return base;
+    return base.filter((car) => {
+      const haystack =
+        `${car.make} ${car.model} ${car.deal_rating} ${car.year} ${car.body}`.toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [savedListings, selections, query]);
+
   const totalPages = Math.max(1, Math.ceil(visibleCars.length / PAGE_SIZE));
   const pagedCars = visibleCars.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <div className="flex h-screen w-full bg-zinc-100/70 dark:bg-zinc-950">
+      {/* Sidebar */}
       <aside
         className={`flex shrink-0 flex-col border-r border-zinc-200 bg-white/95 p-4 transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-950/95 ${
           sidebarCollapsed ? "w-24" : "w-80"
@@ -304,6 +279,7 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
         </div>
       </aside>
 
+      {/* Profile modal */}
       {showProfile && (
         <UserBox
           user={currentUser}
@@ -316,7 +292,9 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
         />
       )}
 
+      {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden p-8">
+        {/* Header */}
         <div className="mb-8 flex shrink-0 flex-col gap-5">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <h1 className="text-3xl font-bold">View our Catalog of Cars</h1>
@@ -342,10 +320,11 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
             </div>
           </div>
 
+          {/* Search + sort */}
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
             <input
               type="text"
-              placeholder="Search cars..."
+              placeholder={showSavedListings ? "Search saved listings..." : "Search cars..."}
               value={query}
               onChange={(event) => {
                 setQuery(event.target.value);
@@ -355,6 +334,21 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
             />
 
             <div className="flex items-center gap-2 md:w-auto">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSavedListings((prev) => !prev);
+                  resetPage();
+                }}
+                className={`cursor-pointer rounded-lg border px-3 py-2 text-sm transition ${
+                  showSavedListings
+                    ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
+                    : "border-zinc-200 bg-white hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+                }`}
+              >
+                Saved ({savedListings.length})
+              </button>
+
               <label htmlFor="sort" className="sr-only">
                 Sort results
               </label>
@@ -375,6 +369,7 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
                 <option value="year">Year</option>
                 <option value="newest">Newest</option>
               </select>
+
               {sortBy && (
                 <button
                   type="button"
@@ -382,7 +377,7 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
                   className="cursor-pointer rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
                   aria-label={sortDirection === "asc" ? "Sort descending" : "Sort ascending"}
                 >
-                  {sortDirection === "asc" ? "^" : "v"}
+                  {sortDirection === "asc" ? "↑" : "↓"}
                 </button>
               )}
             </div>
@@ -395,6 +390,7 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
           )}
         </div>
 
+        {/* Add listing modal */}
         {showAddForm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl bg-white p-6 shadow-xl dark:bg-zinc-950">
@@ -408,6 +404,7 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
           </div>
         )}
 
+        {/* Edit listing modal */}
         {editCar && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl bg-white p-6 shadow-xl dark:bg-zinc-950">
@@ -422,55 +419,13 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
           </div>
         )}
 
+        {/* Car detail modal */}
         {activeCar && (
           <CarDetailsModal
             car={activeCar}
             onClose={() => setActiveCar(null)}
             onSave={handleSaveListing}
             isSaved={isCarSaved(activeCar)}
-          />
-        )}
-
-        <div className="mb-6">
-          <input
-            type="text"
-            placeholder={showSavedListings ? "Search saved listings..." : "Search cars..."}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="flex-1 rounded-lg border border-zinc-200 px-4 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600"
-          />
-        </div>
-
-        <div className="overflow-y-auto flex-1">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {(showSavedListings ? visibleSavedListings : visibleCars).map((car, i) => (
-              <div key={car.vin || i} className="relative">
-                <button
-                  type="button"
-                  onClick={() => setActiveCar(car)}
-                  className="w-full text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950 rounded-lg"
-                >
-                  <CarCard car={car} />
-                </button>
-                {showSavedListings && (
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveSavedListing(normalizeVin(car.vin))}
-                    className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border border-rose-200 bg-white/95 px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm transition hover:bg-rose-50 dark:border-rose-700/60 dark:bg-zinc-900/95 dark:text-rose-300 dark:hover:bg-rose-950/30"
-                    aria-label="Remove saved listing"
-                  >
-                    <span aria-hidden="true">✕</span>
-                    Remove
-                  </button>
-                )}
-              </div>
-            ))}
-            {showSavedListings && visibleSavedListings.length === 0 && (
-              <div className="col-span-full rounded-xl border border-dashed border-zinc-300 p-8 text-center text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">
-                No saved listings yet. Open any car and click "Save Listing".
-              </div>
-            )}
-          </div>
             onEdit={(car) => {
               setSaveError(null);
               setActiveCar(null);
@@ -479,10 +434,39 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
           />
         )}
 
+        {/* Car grid */}
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="rounded-3xl border border-zinc-200 bg-white/80 p-8 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-300">
               Loading catalogue...
+            </div>
+          ) : showSavedListings ? (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {visibleSavedListings.length === 0 ? (
+                <div className="col-span-full rounded-xl border border-dashed border-zinc-300 p-8 text-center text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">
+                  No saved listings yet. Open any car and click &ldquo;Save Listing&rdquo;.
+                </div>
+              ) : (
+                visibleSavedListings.map((car, i) => (
+                  <div key={car.vin || i} className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setActiveCar(car)}
+                      className="w-full cursor-pointer rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950"
+                    >
+                      <CarCard car={car} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSavedListing(normalizeVin(car.vin))}
+                      className="absolute right-3 top-3 inline-flex cursor-pointer items-center gap-1 rounded-full border border-rose-200 bg-white/95 px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm transition hover:bg-rose-50 dark:border-rose-700/60 dark:bg-zinc-900/95 dark:text-rose-300 dark:hover:bg-rose-950/30"
+                      aria-label="Remove saved listing"
+                    >
+                      <span aria-hidden="true">✕</span> Remove
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           ) : (
             <>
@@ -503,7 +487,10 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
                 <p className="text-sm text-zinc-500">
                   {visibleCars.length === 0
                     ? "No results"
-                    : `${(currentPage - 1) * PAGE_SIZE + 1}-${Math.min(currentPage * PAGE_SIZE, visibleCars.length)} of ${visibleCars.length}`}
+                    : `${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(
+                        currentPage * PAGE_SIZE,
+                        visibleCars.length,
+                      )} of ${visibleCars.length}`}
                 </p>
                 <div className="flex items-center gap-1">
                   <button
