@@ -1,10 +1,28 @@
 import { describe, it, expect } from "vitest";
 import { dedupeByVin, normalizeVin } from "../utils/dedupeByVin";
+import { parseCsv } from "../types/car";
+import { readFileSync } from "fs";
+import { join } from "path";
 import { mockCar } from "./mockCar";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 const car = (vin: string) => mockCar({ vin });
+
+describe("dedupeByVin — real dataset", () => {
+  it("removes the duplicate 2006 PONTIAC Torrent (VIN 2ckdl73f566101612) present in cars.csv", () => {
+    const csv = readFileSync(join(process.cwd(), "public/cars.csv"), "utf-8");
+    const cars = parseCsv(csv);
+
+    const vin = "2ckdl73f566101612";
+    const rawCount = cars.filter((c) => c.vin === vin).length;
+    expect(rawCount).toBe(2); // confirm the duplicate exists in the raw data
+
+    const deduped = dedupeByVin(cars);
+    const dedupedCount = deduped.filter((c) => c.vin === vin).length;
+    expect(dedupedCount).toBe(1); // should be collapsed to one — FAILS until implemented
+  });
+});
 
 // ─── dedupeByVin ────────────────────────────────────────────────────────────
 
