@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { Car } from "../../types/car";
+import { detectDuplicates } from "../../utils/duplicateDetection";
 
 export const CONDITION_OPTIONS = [
   { value: "new", label: "New" },
@@ -18,11 +19,17 @@ export type ConditionValue = (typeof CONDITION_OPTIONS)[number]["value"];
 interface AddListingFormProps {
   onSubmit: (car: Car) => void;
   onCancel: () => void;
+  existingCars?: Car[];
 }
 
-export default function AddListingForm({ onSubmit, onCancel }: AddListingFormProps) {
+export default function AddListingForm({ onSubmit, onCancel, existingCars = [] }: AddListingFormProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [duplicateWarning, setDuplicateWarning] = useState<{
+    show: boolean;
+    similarCars: Car[];
+    confidence: 'high' | 'medium' | 'low';
+  } | null>(null);
   const [formData, setFormData] = useState({
     year: "",
     make: "",
@@ -115,6 +122,18 @@ export default function AddListingForm({ onSubmit, onCancel }: AddListingFormPro
       image: imagePreview || undefined,
     };
 
+    // Check for duplicates
+    const duplicateResult = detectDuplicates(car, existingCars);
+    if (duplicateResult.isDuplicate) {
+      console.log('Duplicate detected:', duplicateResult);
+      setDuplicateWarning({
+        show: true,
+        similarCars: duplicateResult.similarCars,
+        confidence: duplicateResult.confidence
+      });
+      return;
+    }
+
     onSubmit(car);
   };
 
@@ -126,6 +145,58 @@ export default function AddListingForm({ onSubmit, onCancel }: AddListingFormPro
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto">
       <h2 className="text-xl font-semibold">Add New Listing</h2>
+
+      {duplicateWarning?.show && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/50">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                Potential Duplicate Detected ({duplicateWarning.confidence} confidence)
+              </h3>
+              <div className="mt-2 text-sm text-amber-700 dark:text-amber-300">
+                <p>This listing may be a duplicate of existing cars:</p>
+                <ul className="mt-1 list-disc list-inside space-y-1">
+                  {duplicateWarning.similarCars.slice(0, 3).map((car, index) => (
+                    <li key={car.vin || index}>
+                      {car.year} {car.make} {car.model} - ${car.sellingprice.toLocaleString()}
+                      {car.vin && ` (VIN: ${car.vin})`}
+                    </li>
+                  ))}
+                  {duplicateWarning.similarCars.length > 3 && (
+                    <li>...and {duplicateWarning.similarCars.length - 3} more</li>
+                  )}
+                </ul>
+              </div>
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDuplicateWarning(null);
+                    // Re-submit the form after clearing warning
+                    const form = document.querySelector('form') as HTMLFormElement;
+                    if (form) form.requestSubmit();
+                  }}
+                  className="rounded-md bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700"
+                >
+                  Proceed Anyway
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDuplicateWarning(null)}
+                  className="rounded-md border border-amber-300 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-100 dark:border-amber-600 dark:text-amber-200 dark:hover:bg-amber-900"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div>
         <label className={labelClass}>Year</label>

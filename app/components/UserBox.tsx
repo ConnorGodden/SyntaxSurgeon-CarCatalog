@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 
 export default function UserBox({ onShowProfileChange }: { onShowProfileChange: (show: boolean) => void }) {
@@ -47,6 +48,23 @@ export default function UserBox({ onShowProfileChange }: { onShowProfileChange: 
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">Focus</p>
                   <p className="mt-1 text-sm">Managing listings, pricing quality, and catalogue updates.</p>
                 </div>
+              </div>
+
+              <div className="mt-6 flex gap-3">
+                <Link
+                  href="/admin"
+                  onClick={() => onShowProfileChange(false)}
+                  className="flex-1 rounded-lg bg-zinc-900 px-4 py-2 text-center text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                >
+                  Admin Dashboard
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => onShowProfileChange(false)}
+                  className="flex-1 rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                >
+                  Close
+                </button>
               </div>
             </div>
           </div>)

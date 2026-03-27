@@ -4,6 +4,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { Car, parseCsv } from "../../types/car";
 import { cleanSelection } from "../../types/filter";
+import { findAllDuplicates } from "../../utils/duplicateDetection";
 
 // Importing components
 import CarCard from "./CarCard";
@@ -21,6 +22,25 @@ export default function CarCatalog() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+
+  // Calculate duplicate groups
+  const duplicateGroups = useMemo(() => findAllDuplicates(cars), [cars]);
+
+  // Create a set of car IDs that are duplicates for quick lookup
+  const duplicateCarIds = useMemo(() => {
+    const ids = new Set<string>();
+    duplicateGroups.forEach(group => {
+      group.forEach(car => {
+        ids.add(car.vin || `${car.make}-${car.model}-${car.year}-${car.sellingprice}`);
+      });
+    });
+    return ids;
+  }, [duplicateGroups]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log(`Found ${duplicateGroups.length} duplicate groups with ${duplicateCarIds.size} duplicate cars`);
+  }, [duplicateGroups, duplicateCarIds]);
 
   useEffect(() => {
     fetch("/cars.csv")
@@ -144,7 +164,7 @@ export default function CarCatalog() {
         {showAddForm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="bg-white dark:bg-zinc-950 rounded-xl shadow-xl max-w-lg w-full p-6">
-              <AddListingForm onSubmit={handleAddListing} onCancel={() => setShowAddForm(false)} />
+              <AddListingForm onSubmit={handleAddListing} onCancel={() => setShowAddForm(false)} existingCars={cars} />
             </div>
           </div>
         )}
@@ -195,17 +215,21 @@ export default function CarCatalog() {
         <div className="overflow-y-auto flex-1">
           {/* This div contains the list of cars that will be filtered, and the parameters within map represent the index and type of car*/}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {visibleCars.map((car, i) => (
-              <Link
-                href={{
-                  pathname: "/car-listing",
-                  query: { carData: JSON.stringify(car) },
-                }}
-                key={car.vin || i}
-              >
-                <CarCard car={car} />
-              </Link>
-            ))}
+            {visibleCars.map((car, i) => {
+              const carId = car.vin || `${car.make}-${car.model}-${car.year}-${car.sellingprice}`;
+              const isDuplicate = duplicateCarIds.has(carId);
+              return (
+                <Link
+                  href={{
+                    pathname: "/car-listing",
+                    query: { carData: JSON.stringify(car) },
+                  }}
+                  key={car.vin || i}
+                >
+                  <CarCard car={car} isDuplicate={isDuplicate} />
+                </Link>
+              );
+            })}
           </div>
         </div>
       </div>
