@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import type { Car } from "../../types/car";
 import type { SessionUser } from "../../types/user";
 import { cleanSelection } from "../../types/filter";
+import { findAllDuplicates } from "../../utils/duplicateDetection";
+
+// Importing components
 import { sortCars } from "../../utils/sortCars";
 import { normalizeVin, dedupeByVin } from "../../utils/dedupeByVin";
 import { getInitials } from "../../utils/formatters";
@@ -81,6 +84,25 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
       setLoading(false);
     }
   };
+
+  // Calculate duplicate groups
+  const duplicateGroups = useMemo(() => findAllDuplicates(cars), [cars]);
+
+  // Create a set of car IDs that are duplicates for quick lookup
+  const duplicateCarIds = useMemo(() => {
+    const ids = new Set<string>();
+    duplicateGroups.forEach(group => {
+      group.forEach(car => {
+        ids.add(car.vin || `${car.make}-${car.model}-${car.year}-${car.sellingprice}`);
+      });
+    });
+    return ids;
+  }, [duplicateGroups]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log(`Found ${duplicateGroups.length} duplicate groups with ${duplicateCarIds.size} duplicate cars`);
+  }, [duplicateGroups, duplicateCarIds]);
 
   useEffect(() => {
     setSavedListings(loadSavedFromStorage());
@@ -268,6 +290,20 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
 
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden p-8">
+        <div className="flex items-center justify-between mb-4 shrink-0">
+          <h1 className="text-3xl font-bold">View our Catalog of Cars</h1>
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          >
+            Add New Listing
+          </button>
+        </div>
+
+        {showAddForm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="bg-white dark:bg-zinc-950 rounded-xl shadow-xl max-w-lg w-full p-6">
+              <AddListingForm onSubmit={handleAddListing} onCancel={() => setShowAddForm(false)} existingCars={cars} />
         {/* Header */}
         <div className="mb-8 flex shrink-0 flex-col gap-5">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -323,6 +359,24 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
                 Saved ({savedListings.length})
               </button>
 
+        <div className="overflow-y-auto flex-1">
+          {/* This div contains the list of cars that will be filtered, and the parameters within map represent the index and type of car*/}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {visibleCars.map((car, i) => {
+              const carId = car.vin || `${car.make}-${car.model}-${car.year}-${car.sellingprice}`;
+              const isDuplicate = duplicateCarIds.has(carId);
+              return (
+                <Link
+                  href={{
+                    pathname: "/car-listing",
+                    query: { carData: JSON.stringify(car) },
+                  }}
+                  key={car.vin || i}
+                >
+                  <CarCard car={car} isDuplicate={isDuplicate} />
+                </Link>
+              );
+            })}
               <label htmlFor="sort" className="sr-only">
                 Sort results
               </label>
