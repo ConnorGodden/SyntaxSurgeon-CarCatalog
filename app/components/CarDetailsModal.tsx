@@ -4,6 +4,12 @@ import Image from "next/image";
 import { Car } from "../../types/car";
 import { getCarImageSrc } from "../../utils/carImage";
 import { formatCondition, formatMoney, formatOdometerKm } from "../../utils/formatters";
+import {
+  formatNumberOrMissing,
+  formatValueOrMissing,
+  getMissingListingFields,
+  isListingIncomplete,
+} from "../../utils/listingCompleteness";
 
 function isDataUrl(src: string) {
   return src.startsWith("data:");
@@ -32,6 +38,8 @@ export default function CarDetailsModal({
   onEdit?: (car: Car) => void;
 }) {
   const src = getCarImageSrc(car);
+  const missingFields = getMissingListingFields(car);
+  const incomplete = isListingIncomplete(car);
 
   return (
     <div
@@ -48,11 +56,16 @@ export default function CarDetailsModal({
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-zinc-500">Listing</p>
             <h2 className="truncate text-xl font-semibold text-zinc-950 dark:text-zinc-50 sm:text-2xl">
-              {car.year} {car.make} {car.model}
+              {Number.isFinite(car.year) ? car.year : "Unknown year"} {car.make} {car.model}
             </h2>
             <p className="mt-1 truncate text-sm text-zinc-600 dark:text-zinc-300">
               VIN: <span className="font-mono">{car.vin || "N/A"}</span>
             </p>
+            {incomplete && (
+              <p className="mt-2 inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800 dark:border-amber-700/60 dark:bg-amber-950/30 dark:text-amber-200">
+                Incomplete listing
+              </p>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
@@ -92,12 +105,17 @@ export default function CarDetailsModal({
                 )}
               </div>
               <div className="p-5">
+                {incomplete && (
+                  <p className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/30 dark:text-amber-200">
+                    Missing fields: {missingFields.join(", ")}
+                  </p>
+                )}
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded-full bg-zinc-900 px-3 py-1 text-xs font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">
-                    {formatMoney(car.sellingprice)}
+                    {formatNumberOrMissing(car.sellingprice, formatMoney)}
                   </span>
                   <span className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-semibold text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200">
-                    {formatOdometerKm(car.odometer)}
+                    {formatNumberOrMissing(car.odometer, formatOdometerKm)}
                   </span>
                   <span className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-semibold text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200">
                     {formatCondition(car.condition)}
@@ -124,15 +142,15 @@ export default function CarDetailsModal({
 
           <section className="lg:col-span-2">
             <div className="grid gap-3">
-              <SpecRow label="Trim" value={car.trim ?? "N/A"} />
-              <SpecRow label="Body" value={car.body || "N/A"} />
-              <SpecRow label="Transmission" value={car.transmission ?? "N/A"} />
-              <SpecRow label="State" value={car.state || "N/A"} />
-              <SpecRow label="Color" value={car.color || "N/A"} />
-              <SpecRow label="Interior" value={car.interior || "N/A"} />
-              <SpecRow label="Seller" value={car.seller || "N/A"} />
-              <SpecRow label="MMR" value={formatMoney(car.mmr)} />
-              <SpecRow label="Sale date" value={car.saledate || "N/A"} />
+              <SpecRow label="Trim" value={formatValueOrMissing(car.trim)} />
+              <SpecRow label="Body" value={formatValueOrMissing(car.body)} />
+              <SpecRow label="Transmission" value={formatValueOrMissing(car.transmission)} />
+              <SpecRow label="State" value={formatValueOrMissing(car.state)} />
+              <SpecRow label="Color" value={formatValueOrMissing(car.color)} />
+              <SpecRow label="Interior" value={formatValueOrMissing(car.interior)} />
+              <SpecRow label="Seller" value={formatValueOrMissing(car.seller)} />
+              <SpecRow label="MMR" value={formatNumberOrMissing(car.mmr, formatMoney)} />
+              <SpecRow label="Sale date" value={formatValueOrMissing(car.saledate)} />
             </div>
           </section>
         </div>

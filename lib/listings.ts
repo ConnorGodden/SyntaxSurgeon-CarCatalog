@@ -59,19 +59,28 @@ function normalizeCondition(value: string): string | number | null {
   return value.trim();
 }
 
+function coerceNumberOrNaN(value: string | undefined): number {
+  const numeric = Number(value ?? "");
+  return Number.isNaN(numeric) ? Number.NaN : numeric;
+}
+
+function serializeNumber(value: number): string {
+  return Number.isFinite(value) ? String(value) : "";
+}
+
 function mapRowToCar(row: Record<string, string>): Car | null {
   const vin = row.vin?.trim();
   const make = row.make?.trim();
   const model = row.model?.trim();
-  const year = Number(row.year ?? "");
-  const odometer = Number(row.odometer ?? "");
-  const sellingprice = Number(row.sellingprice ?? "");
-  const mmr = Number(row.mmr ?? "");
+  const year = coerceNumberOrNaN(row.year);
+  const odometer = coerceNumberOrNaN(row.odometer);
+  const sellingprice = coerceNumberOrNaN(row.sellingprice);
+  const mmr = coerceNumberOrNaN(row.mmr);
   const ownerId = row.ownerId?.trim();
   const ownerEmail = row.ownerEmail?.trim().toLowerCase();
   const ownerRole = row.ownerRole?.trim().toLowerCase();
 
-  if (!vin || !make || !model || Number.isNaN(year) || Number.isNaN(odometer) || Number.isNaN(sellingprice) || Number.isNaN(mmr)) {
+  if (!vin || !make || !model) {
     return null;
   }
 
@@ -105,7 +114,7 @@ function mapRowToCar(row: Record<string, string>): Car | null {
 
 function mapCarToRow(car: Car): ListingRecord {
   return {
-    year: String(car.year ?? ""),
+    year: serializeNumber(car.year),
     make: car.make ?? "",
     model: car.model ?? "",
     trim: car.trim ?? "",
@@ -114,12 +123,12 @@ function mapCarToRow(car: Car): ListingRecord {
     vin: car.vin ?? "",
     state: car.state ?? "",
     condition: car.condition == null ? "" : String(car.condition),
-    odometer: String(car.odometer ?? 0),
+    odometer: serializeNumber(car.odometer),
     color: car.color ?? "",
     interior: car.interior ?? "",
     seller: car.seller ?? "",
-    mmr: String(car.mmr ?? 0),
-    sellingprice: String(car.sellingprice ?? 0),
+    mmr: serializeNumber(car.mmr),
+    sellingprice: serializeNumber(car.sellingprice),
     saledate: car.saledate ?? "",
     deal_rating: car.deal_rating ?? "Fair Market",
     ownerId: car.ownerId ?? "",
