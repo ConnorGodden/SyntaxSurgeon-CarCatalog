@@ -1,0 +1,5 @@
+id,fullName,email,password,role,createdAt,isActive
+seed-consumer-001,Casey Consumer,consumer@carcatalog.local,consumer123,consumer,2026-03-21T00:00:00.000Z,true
+seed-dealer-001,Dana Dealer,dealer@carcatalog.local,dealer123,dealer,2026-03-21T00:00:00.000Z,true
+seed-admin-001,Alex Admin,admin@carcatalog.local,admin123,admin,2026-03-21T00:00:00.000Z,true
+user-4b8333fe-46a5-4255-a6a6-0bf0f8e37883,Vincent Wong,vincent@tset.com,vincent279!,consumer,2026-03-23T02:24:36.251Z,true

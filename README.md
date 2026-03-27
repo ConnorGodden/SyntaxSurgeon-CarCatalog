@@ -26,6 +26,43 @@ bun dev
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Build Scripts
+
+Three scripts live in the `scripts/` directory. All of them install dependencies, run the test suite, and produce a production build. Any step that fails will stop the script early.
+
+### `scripts/setup.sh` — macOS / Linux
+
+Installs dependencies, runs tests, and builds the project.
+
+```bash
+# Make the script executable (first time only)
+chmod +x scripts/setup.sh
+
+# Run it
+./scripts/setup.sh
+```
+
+The script prefers `pnpm` if it is available and falls back to `npm`. Node.js 18+ is required.
+
+### `scripts/setup.bat` — Windows
+
+Equivalent setup script for Windows Command Prompt or PowerShell.
+
+```bat
+scripts\setup.bat
+```
+
+### `scripts/deploy.sh` — Deploy to Vercel (macOS / Linux)
+
+Runs the same pre-flight checks (tests + build) and then pushes to Vercel production. Must be run from a clean working tree.
+
+```bash
+chmod +x scripts/deploy.sh
+./scripts/deploy.sh
+```
+
+The script will warn you if you are not on the `main` branch and will install the Vercel CLI automatically if it is not already present.
+
 ## Live Link
 
 The app is deployed to the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js. The link to the live application is [cars.connor12858.ca](https://cars.connor12858.ca).
