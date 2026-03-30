@@ -19,20 +19,10 @@ export type ConditionValue = (typeof CONDITION_OPTIONS)[number]["value"];
 interface AddListingFormProps {
   onSubmit: (car: Car) => Promise<void> | void;
   onCancel: () => void;
-  existingCars?: Car[];
-}
-
-export default function AddListingForm({ onSubmit, onCancel, existingCars = [] }: AddListingFormProps) {
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [duplicateWarning, setDuplicateWarning] = useState<{
-    show: boolean;
-    similarCars: Car[];
-    confidence: 'high' | 'medium' | 'low';
-  } | null>(null);
   initialCar?: Car;
   submitError?: string | null;
   submitting?: boolean;
+  existingCars?: Car[];
 }
 
 export default function AddListingForm({
@@ -41,6 +31,7 @@ export default function AddListingForm({
   initialCar,
   submitError = null,
   submitting = false,
+  existingCars = [],
 }: AddListingFormProps) {
   const isEditing = !!initialCar;
 
@@ -58,6 +49,11 @@ export default function AddListingForm({
   const [imagePreview, setImagePreview] = useState<string | null>(
     initialCar?.image?.startsWith("data:") ? initialCar.image : null
   );
+  const [duplicateWarning, setDuplicateWarning] = useState<{
+    show: boolean;
+    similarCars: Car[];
+    confidence: 'high' | 'medium' | 'low';
+  } | null>(null);
   const [formData, setFormData] = useState({
     year: initialCar ? String(initialCar.year) : "",
     make: initialCar?.make ?? "",
@@ -164,7 +160,6 @@ export default function AddListingForm({
       return;
     }
 
-    onSubmit(car);
     await Promise.resolve(onSubmit(car));
   };
 

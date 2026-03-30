@@ -6,9 +6,11 @@ import { formatMissingFieldSummary, getMissingListingFields, isListingIncomplete
 const isDataUrl = (src: string) => src.startsWith("data:");
 
 export default function CarCard({ car, isDuplicate = false }: { car: Car; isDuplicate?: boolean }) {
-    const src = imageSrc(car);
+    const src = getCarImageSrc(car);
+    const missingFields = getMissingListingFields(car);
+    const incomplete = isListingIncomplete(car);
     return (
-      <div className={`rounded-lg border border-zinc-200 p-4 dark:border-zinc-800 w-full h-100 relative ${isDuplicate ? 'ring-2 ring-amber-400' : ''}`}>
+      <div className={`rounded-lg border border-zinc-200 p-4 dark:border-zinc-800 w-full h-100 relative transition-transform duration-150 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-zinc-900/10 dark:hover:shadow-black/30 ${isDuplicate ? 'ring-2 ring-amber-400' : ''}`}>
         {isDuplicate && (
           <div className="absolute top-2 right-2 z-10">
             <div className="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-200">
@@ -19,12 +21,6 @@ export default function CarCard({ car, isDuplicate = false }: { car: Car; isDupl
             </div>
           </div>
         )}
-export default function CarCard({ car }: { car: Car }) {
-    const src = getCarImageSrc(car);
-    const missingFields = getMissingListingFields(car);
-    const incomplete = isListingIncomplete(car);
-    return (
-      <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800 w-full h-100 transition-transform duration-150 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-zinc-900/10 dark:hover:shadow-black/30">
         <div className="relative mb-3 h-36 w-full overflow-hidden rounded-md">
           {isDataUrl(src) ? (
             <img
