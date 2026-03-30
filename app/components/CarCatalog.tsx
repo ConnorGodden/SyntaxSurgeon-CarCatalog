@@ -12,7 +12,7 @@ import { sortCars } from "../../utils/sortCars";
 import { normalizeVin, dedupeByVin } from "../../utils/dedupeByVin";
 import { getInitials } from "../../utils/formatters";
 import CarCard from "./CarCard";
-import FilterSelection from "./FilterSelection";
+import FilterSelection, { FILTER_CONFIGS, getFilterDisplayValue, getFilterLabel } from "./FilterSelection";
 import AddListingForm from "./AddListingForm";
 import UserBox from "./UserBox";
 import CarDetailsModal from "./CarDetailsModal";
@@ -221,27 +221,43 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
 
   const totalPages = Math.max(1, Math.ceil(visibleCars.length / PAGE_SIZE));
   const pagedCars = visibleCars.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const activeFilters = FILTER_CONFIGS.filter((config) => selections[config.key]).map((config) => ({
+    key: config.key,
+    label: getFilterLabel(config.key),
+    value: selections[config.key],
+    displayValue: getFilterDisplayValue(config.key, selections[config.key]),
+  }));
 
   return (
     <div className="flex h-screen w-full bg-zinc-100/70 dark:bg-zinc-950">
       {/* Sidebar */}
       <aside
-        className={`flex shrink-0 flex-col border-r border-zinc-200 bg-white/95 p-4 transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-950/95 ${
-          sidebarCollapsed ? "w-24" : "w-80"
+        className={`flex shrink-0 flex-col border-r border-zinc-200 bg-white/95 transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-950/95 ${
+          sidebarCollapsed
+            ? "w-28 items-center px-3 py-5 shadow-[inset_-1px_0_0_rgba(0,0,0,0.04)]"
+            : "w-80 p-4"
         }`}
       >
         <button
           type="button"
           onClick={() => setSidebarCollapsed((prev) => !prev)}
-          className={`flex cursor-pointer items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 text-left transition hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/80 ${
-            sidebarCollapsed ? "justify-center" : ""
+          className={`flex cursor-pointer items-center text-left transition ${
+            sidebarCollapsed
+              ? "h-14 w-full justify-center self-center rounded-2xl border border-transparent bg-transparent px-0 py-0 text-zinc-900 shadow-none hover:bg-zinc-50 dark:text-zinc-100 dark:hover:bg-zinc-900/70"
+              : "gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/80"
           }`}
           aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
+          <span
+            className={`flex shrink-0 items-center justify-center ${
+              sidebarCollapsed
+                ? "h-11 w-11 rounded-xl border border-zinc-200 bg-white text-zinc-900 shadow-sm dark:border-zinc-700 dark:bg-white dark:text-zinc-950"
+                : "h-11 w-11 rounded-2xl bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+            }`}
+          >
             <svg
               viewBox="0 0 24 24"
-              className="h-6 w-6"
+              className={sidebarCollapsed ? "h-8 w-8" : "h-6 w-6"}
               fill="none"
               stroke="currentColor"
               strokeWidth="1.8"
@@ -249,9 +265,15 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
               strokeLinejoin="round"
               aria-hidden="true"
             >
-              <path d="M3 13h3l2-5 3 8 2-4h8" />
-              <circle cx="7.5" cy="17.5" r="1.5" fill="currentColor" stroke="none" />
-              <circle cx="17.5" cy="17.5" r="1.5" fill="currentColor" stroke="none" />
+              {sidebarCollapsed ? (
+                <path d="M12 5 18 18H6L12 5Z" fill="currentColor" stroke="none" />
+              ) : (
+                <>
+                  <path d="M3 13h3l2-5 3 8 2-4h8" />
+                  <circle cx="7.5" cy="17.5" r="1.5" fill="currentColor" stroke="none" />
+                  <circle cx="17.5" cy="17.5" r="1.5" fill="currentColor" stroke="none" />
+                </>
+              )}
             </svg>
           </span>
           {!sidebarCollapsed && (
@@ -262,7 +284,19 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
           )}
         </button>
 
-        <div className="mt-4 min-h-0 flex-1 overflow-y-auto">
+        {sidebarCollapsed && (
+          <div className="mt-4 w-20 rounded-full border border-zinc-200 bg-zinc-50 px-2 py-1 text-center text-[10px] font-semibold uppercase tracking-[0.28em] text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+            Filters
+          </div>
+        )}
+
+        <div
+          className={`mt-4 min-h-0 flex-1 ${
+            sidebarCollapsed
+              ? "w-full overflow-visible rounded-[30px] bg-zinc-50/80 p-2 dark:bg-zinc-900/70"
+              : "overflow-y-auto"
+          }`}
+        >
           <FilterSelection
             cars={cars}
             selections={selections}
@@ -271,6 +305,7 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
               resetPage();
             }}
             collapsed={sidebarCollapsed}
+            onRequestExpand={() => setSidebarCollapsed(false)}
           />
         </div>
       </aside>
@@ -383,6 +418,52 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
             <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
               {saveError || loadError}
             </p>
+          )}
+
+          {activeFilters.length > 0 && (
+            <div className="rounded-2xl border border-zinc-200 bg-white/85 px-4 py-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/70">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-500">
+                    Applied Filters
+                  </p>
+                  <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                    Results are currently narrowed by {activeFilters.length} filter{activeFilters.length === 1 ? "" : "s"}.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelections({});
+                    resetPage();
+                  }}
+                  className="inline-flex cursor-pointer items-center justify-center rounded-full border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                >
+                  Clear all
+                </button>
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {activeFilters.map((filter) => (
+                  <button
+                    key={filter.key}
+                    type="button"
+                    onClick={() => {
+                      setSelections((prev) => ({ ...prev, [filter.key]: "" }));
+                      resetPage();
+                    }}
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:border-zinc-600 dark:hover:bg-zinc-900"
+                    aria-label={`Remove ${filter.label} filter`}
+                  >
+                    <span className="font-medium">{filter.label}:</span>
+                    <span>{filter.displayValue}</span>
+                    <span aria-hidden="true" className="text-zinc-400 dark:text-zinc-500">
+                      ×
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
         </div>
 
