@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactElement } from "react";
+import { useEffect, useRef, type ReactElement } from "react";
 import type { Car } from "../../types/car";
 import { CONDITION_OPTIONS } from "./AddListingForm";
 
@@ -121,14 +121,42 @@ export default function FilterSelection({
   onSelectionChange,
   collapsed = false,
   onRequestExpand,
+  requestedFilterKey,
+  onFilterOpenHandled,
 }: {
   cars: Car[];
   selections: Record<string, string>;
   onSelectionChange: (next: Record<string, string>) => void;
   collapsed?: boolean;
-  onRequestExpand?: () => void;
+  onRequestExpand?: (filterKey?: FilterKey) => void;
+  requestedFilterKey?: FilterKey | null;
+  onFilterOpenHandled?: () => void;
 }) {
   const activeFilters = FILTER_CONFIGS.filter((config) => selections[config.key]);
+  const selectRefs = useRef<Partial<Record<FilterKey, HTMLSelectElement | null>>>({});
+
+  useEffect(() => {
+    if (collapsed || !requestedFilterKey) {
+      return;
+    }
+
+    const select = selectRefs.current[requestedFilterKey];
+    if (!select) {
+      return;
+    }
+
+    select.focus();
+
+    const picker = select as HTMLSelectElement & { showPicker?: () => void };
+    if (typeof picker.showPicker === "function") {
+      picker.showPicker();
+    } else {
+      select.click();
+      select.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    }
+
+    onFilterOpenHandled?.();
+  }, [collapsed, requestedFilterKey, onFilterOpenHandled]);
 
   if (collapsed) {
     return (
@@ -151,7 +179,7 @@ export default function FilterSelection({
                 <button
                   type="button"
                   title={config.label}
-                  onClick={() => onRequestExpand?.()}
+                  onClick={() => onRequestExpand?.(config.key)}
                   className={`relative flex h-full min-h-12 w-full items-center justify-center rounded-2xl border transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950 ${
                     isActive
                       ? "border-emerald-300 bg-emerald-50 text-emerald-700 shadow-sm dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
@@ -159,7 +187,7 @@ export default function FilterSelection({
                   }`}
                   aria-label={`${config.label}${isActive ? `: ${getFilterDisplayValue(config.key, value)}` : ""}`}
                 >
-                  {config.icon("h-5 w-5")}
+                  {config.icon("h-6 w-6")}
                   {isActive ? (
                     <>
                       <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-950" />
@@ -220,6 +248,9 @@ export default function FilterSelection({
             {config.label}
           </label>
           <select
+            ref={(element) => {
+              selectRefs.current[config.key] = element;
+            }}
             value={selections[config.key] ?? ""}
             onChange={(event) => onSelectionChange({ ...selections, [config.key]: event.target.value })}
             className="w-full cursor-pointer rounded-lg border border-zinc-200 px-4 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:focus:border-zinc-600"

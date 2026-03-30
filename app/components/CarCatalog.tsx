@@ -12,7 +12,11 @@ import { sortCars } from "../../utils/sortCars";
 import { normalizeVin, dedupeByVin } from "../../utils/dedupeByVin";
 import { getInitials } from "../../utils/formatters";
 import CarCard from "./CarCard";
-import FilterSelection, { FILTER_CONFIGS, getFilterDisplayValue, getFilterLabel } from "./FilterSelection";
+import FilterSelection, {
+  FILTER_CONFIGS,
+  getFilterDisplayValue,
+  getFilterLabel,
+} from "./FilterSelection";
 import AddListingForm from "./AddListingForm";
 import UserBox from "./UserBox";
 import CarDetailsModal from "./CarDetailsModal";
@@ -41,6 +45,7 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
   const [loggingOut, setLoggingOut] = useState(false);
   const [savedListings, setSavedListings] = useState<Car[]>([]);
   const [showSavedListings, setShowSavedListings] = useState(false);
+  const [requestedFilterKey, setRequestedFilterKey] = useState<(typeof FILTER_CONFIGS)[number]["key"] | null>(null);
   const PAGE_SIZE = 12;
 
   const resetPage = () => setCurrentPage(1);
@@ -251,13 +256,13 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
           <span
             className={`flex shrink-0 items-center justify-center ${
               sidebarCollapsed
-                ? "h-11 w-11 rounded-xl border border-zinc-200 bg-white text-zinc-900 shadow-sm dark:border-zinc-700 dark:bg-white dark:text-zinc-950"
+                ? "h-14 w-14 rounded-2xl border border-zinc-200 bg-white text-zinc-900 shadow-sm dark:border-zinc-700 dark:bg-white dark:text-zinc-950"
                 : "h-11 w-11 rounded-2xl bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
             }`}
           >
             <svg
               viewBox="0 0 24 24"
-              className={sidebarCollapsed ? "h-8 w-8" : "h-6 w-6"}
+              className={sidebarCollapsed ? "h-9 w-9" : "h-6 w-6"}
               fill="none"
               stroke="currentColor"
               strokeWidth="1.8"
@@ -305,7 +310,12 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
               resetPage();
             }}
             collapsed={sidebarCollapsed}
-            onRequestExpand={() => setSidebarCollapsed(false)}
+            requestedFilterKey={requestedFilterKey}
+            onFilterOpenHandled={() => setRequestedFilterKey(null)}
+            onRequestExpand={(filterKey) => {
+              setSidebarCollapsed(false);
+              setRequestedFilterKey(filterKey ?? null);
+            }}
           />
         </div>
       </aside>
