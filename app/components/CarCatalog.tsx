@@ -25,7 +25,7 @@ import CarDetailsModal from "./CarDetailsModal";
 const SAVED_LISTINGS_KEY = "saved_listings_v1";
 
 
-export default function CarCatalog({ currentUser }: { currentUser: SessionUser }) {
+export default function CarCatalog({ currentUser }: { currentUser: SessionUser | null }) {
   const router = useRouter();
   const [cars, setCars] = useState<Car[]>([]);
   const [query, setQuery] = useState("");
@@ -47,8 +47,13 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
   const [showSavedListings, setShowSavedListings] = useState(false);
   const [requestedFilterKey, setRequestedFilterKey] = useState<(typeof FILTER_CONFIGS)[number]["key"] | null>(null);
   const PAGE_SIZE = 12;
+  const isLoggedIn = Boolean(currentUser);
 
   const resetPage = () => setCurrentPage(1);
+
+  const redirectToLogin = () => {
+    router.push("/login");
+  };
 
   const loadSavedFromStorage = (): Car[] => {
     try {
@@ -169,7 +174,7 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
       if (!response.ok || !payload.ok) {
         throw new Error(payload.error || "Logout failed.");
       }
-      router.push("/");
+      router.push("/catalog");
       router.refresh();
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : "Logout failed.");
@@ -321,7 +326,7 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
       </aside>
 
       {/* Profile modal */}
-      {showProfile && (
+      {showProfile && currentUser && (
         <UserBox
           user={currentUser}
           onShowProfileChange={setShowProfile}
@@ -344,6 +349,10 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
                 type="button"
                 onClick={() => {
                   setSaveError(null);
+                  if (!isLoggedIn) {
+                    redirectToLogin();
+                    return;
+                  }
                   setShowAddForm(true);
                 }}
                 className="cursor-pointer rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
@@ -352,11 +361,17 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser }
               </button>
               <button
                 type="button"
-                onClick={() => setShowProfile(true)}
+                onClick={() => {
+                  if (!isLoggedIn) {
+                    redirectToLogin();
+                    return;
+                  }
+                  setShowProfile(true);
+                }}
                 className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-zinc-900 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-                aria-label="My Profile"
+                aria-label={isLoggedIn ? "My Profile" : "Log In"}
               >
-                {getInitials(currentUser.fullName)}
+                {getInitials(currentUser?.fullName ?? "Guest User")}
               </button>
             </div>
           </div>

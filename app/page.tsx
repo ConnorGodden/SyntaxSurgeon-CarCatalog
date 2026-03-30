@@ -1,7 +1,5 @@
-import AuthPage from "./components/AuthPage";
-import { getSessionUser } from "../lib/session";
+import { redirect } from "next/navigation";
 
-export default async function Home() {
-  const user = await getSessionUser();
-  return <AuthPage initialUser={user} />;
+export default function Home() {
+  redirect("/catalog");
 }

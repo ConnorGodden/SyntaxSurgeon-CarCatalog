@@ -67,7 +67,7 @@ export default function UserBox({
         <div className="mt-6 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/70">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">Session</p>
           <div className="mt-3 flex items-center justify-between gap-4">
-            <p className="text-sm text-zinc-600 dark:text-zinc-300">Sign out and return to the home page.</p>
+            <p className="text-sm text-zinc-600 dark:text-zinc-300">Sign out and return to the catalogue.</p>
             <button
               type="button"
               onClick={onLogout}

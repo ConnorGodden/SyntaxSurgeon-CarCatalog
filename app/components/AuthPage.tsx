@@ -95,7 +95,7 @@ export default function AuthPage({ initialUser }: { initialUser: SessionUser | n
                 Browse smarter, manage listings faster, and keep every account tied to real inventory.
               </h1>
               <p className="mt-4 max-w-lg text-sm leading-6 text-zinc-300">
-                Sign in to continue to the car catalogue, or create a new consumer account to start exploring.
+                Sign in to add listings and manage your account, or create a new consumer account to get started.
               </p>
             </div>
 
