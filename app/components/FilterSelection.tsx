@@ -161,36 +161,30 @@ export default function FilterSelection({
   if (collapsed) {
     return (
       <div className="flex h-full w-full flex-col items-center">
-        <div className="mb-1 flex flex-col items-center gap-1">
-          {activeFilters.length > 0 && (
-            <div className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300">
-              {activeFilters.length} active
-            </div>
-          )}
-        </div>
-
-        <div className="flex w-full flex-1 flex-col justify-between gap-2 py-2">
+        <div className="flex w-14 flex-col items-center gap-6 py-4">
           {FILTER_CONFIGS.map((config) => {
             const value = selections[config.key];
             const isActive = Boolean(value);
 
             return (
-              <div key={config.key} className="group relative flex-1">
+              <div key={config.key} className="group relative flex items-center justify-center">
                 <button
                   type="button"
                   title={config.label}
                   onClick={() => onRequestExpand?.(config.key)}
-                  className={`relative flex h-full min-h-12 w-full items-center justify-center rounded-2xl border transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950 ${
+                  className={`relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950 ${
                     isActive
-                      ? "border-emerald-300 bg-emerald-50 text-emerald-700 shadow-sm dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
-                      : "border-zinc-200 bg-white/90 text-zinc-600 hover:border-zinc-300 hover:bg-white dark:border-zinc-800 dark:bg-zinc-950/80 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-950"
+                      ? "border-emerald-300 bg-zinc-50 text-emerald-700 dark:border-emerald-800 dark:bg-zinc-900 dark:text-emerald-300"
+                      : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-800"
                   }`}
                   aria-label={`${config.label}${isActive ? `: ${getFilterDisplayValue(config.key, value)}` : ""}`}
                 >
-                  {config.icon("h-6 w-6")}
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+                    {config.icon("h-6 w-6")}
+                  </span>
                   {isActive ? (
                     <>
-                      <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-950" />
+                      <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-zinc-50 dark:ring-zinc-900" />
                       <span className="absolute bottom-1.5 right-1.5 rounded-full bg-emerald-600 px-1.5 py-0.5 text-[9px] font-bold leading-none text-white dark:bg-emerald-400 dark:text-zinc-950">
                         1
                       </span>
@@ -229,7 +223,7 @@ export default function FilterSelection({
       <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/70">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-zinc-500">Filters</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-zinc-500">Filters</p>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
               Narrow the catalogue by specs, condition, and rating.
             </p>
@@ -244,7 +238,7 @@ export default function FilterSelection({
 
       {FILTER_CONFIGS.map((config) => (
         <div key={config.key} className="w-full">
-          <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.3em] text-zinc-500 dark:text-zinc-400">
             {config.label}
           </label>
           <select
