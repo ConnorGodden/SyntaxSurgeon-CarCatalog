@@ -160,8 +160,8 @@ export default function FilterSelection({
 
   if (collapsed) {
     return (
-      <div className="flex h-full w-full flex-col items-center">
-        <div className="flex w-14 flex-col items-center gap-6 py-4">
+      <div className="flex h-full w-full flex-col items-center justify-start">
+        <div className="flex w-14 flex-col items-center gap-4 pt-0 pb-3 xl:gap-6 xl:pb-4">
           {FILTER_CONFIGS.map((config) => {
             const value = selections[config.key];
             const isActive = Boolean(value);
@@ -179,8 +179,8 @@ export default function FilterSelection({
                   }`}
                   aria-label={`${config.label}${isActive ? `: ${getFilterDisplayValue(config.key, value)}` : ""}`}
                 >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center">
-                    {config.icon("h-6 w-6")}
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center sm:h-6 sm:w-6">
+                    {config.icon("h-5 w-5 sm:h-6 sm:w-6")}
                   </span>
                   {isActive ? (
                     <>

@@ -21,6 +21,18 @@ import UserBox from "./UserBox";
 import CarDetailsModal from "./CarDetailsModal";
 
 const SAVED_LISTINGS_KEY = "saved_listings_v1";
+const CATALOG_TITLE_SESSION_KEY = "catalog_title_v1";
+const SEARCH_CARS_PLACEHOLDER = "Search cars...";
+const CATALOG_TITLES = [
+  "View our Catalog of Cars",
+  "Find Your Next Car",
+  "Browse Our Car Listings",
+  "Explore Available Cars",
+  "Search and Compare Cars",
+  "Discover Cars That Fit Your Needs",
+  "Explore Deals on Cars",
+  "Your Car Marketplace",
+] as const;
 
 type AdminUser = Omit<UserRecord, "password">;
 type UserSortOption = "newest" | "oldest" | "name-asc" | "name-desc";
@@ -47,6 +59,9 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
   const router = useRouter();
   const [cars, setCars] = useState<Car[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [catalogTitle, setCatalogTitle] = useState<string | null>(null);
+  const [animatedSearchPlaceholder, setAnimatedSearchPlaceholder] = useState("");
+  const [pageReady, setPageReady] = useState(false);
   const [query, setQuery] = useState("");
   const [selections, setSelections] = useState<Record<string, string>>({});
   const [sortBy, setSortBy] = useState<"" | "price" | "mileage" | "year" | "newest">("");
@@ -167,6 +182,68 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
     setSavedListings(loadSavedFromStorage());
     void loadListings();
   }, []);
+
+  useEffect(() => {
+    try {
+      const savedTitle = sessionStorage.getItem(CATALOG_TITLE_SESSION_KEY);
+      if (savedTitle && CATALOG_TITLES.includes(savedTitle as (typeof CATALOG_TITLES)[number])) {
+        setCatalogTitle(savedTitle);
+      } else {
+        const randomIndex = Math.floor(Math.random() * CATALOG_TITLES.length);
+        const nextTitle = CATALOG_TITLES[randomIndex];
+        sessionStorage.setItem(CATALOG_TITLE_SESSION_KEY, nextTitle);
+        setCatalogTitle(nextTitle);
+      }
+    } catch {
+      const randomIndex = Math.floor(Math.random() * CATALOG_TITLES.length);
+      setCatalogTitle(CATALOG_TITLES[randomIndex]);
+    } finally {
+      requestAnimationFrame(() => setPageReady(true));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!showingCarsInterface || showSavedListings) {
+      setAnimatedSearchPlaceholder("");
+      return;
+    }
+
+    let timeoutId: number | undefined;
+    let restartCycleId: number | undefined;
+
+    const runTypingAnimation = () => {
+      setAnimatedSearchPlaceholder("");
+      let nextIndex = 0;
+
+      const typeNextCharacter = () => {
+        nextIndex += 1;
+        setAnimatedSearchPlaceholder(SEARCH_CARS_PLACEHOLDER.slice(0, nextIndex));
+
+        if (nextIndex < SEARCH_CARS_PLACEHOLDER.length) {
+          timeoutId = window.setTimeout(typeNextCharacter, 70);
+          return;
+        }
+
+        timeoutId = window.setTimeout(() => {
+          setAnimatedSearchPlaceholder("");
+        }, 2200);
+      };
+
+      timeoutId = window.setTimeout(typeNextCharacter, 150);
+    };
+
+    runTypingAnimation();
+    restartCycleId = window.setInterval(runTypingAnimation, 10000);
+
+    return () => {
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+      if (restartCycleId) {
+        window.clearInterval(restartCycleId);
+      }
+    };
+  }, [showSavedListings, showingCarsInterface]);
 
   useEffect(() => {
     if (showingCarsInterface) {
@@ -398,7 +475,11 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
   }
 
   return (
-    <div className="flex h-screen w-full bg-zinc-100/70 dark:bg-zinc-950">
+    <div
+      className={`flex h-screen w-full overflow-x-hidden bg-zinc-100/70 transition-all duration-500 ease-out dark:bg-zinc-950 ${
+        pageReady ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
+      }`}
+    >
       <aside
         className={`flex shrink-0 flex-col border-r border-zinc-200 bg-white/95 transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-950/95 ${
           sidebarCollapsed
@@ -422,7 +503,7 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
           >
             <svg
               viewBox="0 0 24 24"
-              className={sidebarCollapsed ? "h-9 w-9" : "h-6 w-6"}
+              className={sidebarCollapsed ? "h-[1.9rem] w-[1.9rem] sm:h-9 sm:w-9" : "h-6 w-6"}
               fill="none"
               stroke="currentColor"
               strokeWidth="1.8"
@@ -452,10 +533,10 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
         </div>
 
         <div
-          className={`${sidebarCollapsed ? "my-auto" : "mt-4"} min-h-0 flex-1 ${
+          className={`${sidebarCollapsed ? "mt-4" : "mt-4"} min-h-0 flex-1 ${
             sidebarCollapsed
-              ? "mx-auto h-[33rem] w-full max-w-[4.4rem] flex-none overflow-visible rounded-[30px] bg-white/95 p-2.5 dark:bg-zinc-950/95"
-              : "overflow-y-auto"
+              ? "mx-auto w-full max-w-[4.4rem] overflow-hidden rounded-[30px] bg-white/95 p-2.5 dark:bg-zinc-950/95"
+              : "overflow-x-hidden overflow-y-auto"
           }`}
         >
           {showingCarsInterface ? (
@@ -477,8 +558,8 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
           ) : (
             <div className={`space-y-5 ${sidebarCollapsed ? "px-1" : "px-1 py-1"}`}>
               {sidebarCollapsed ? (
-                <div className="flex h-full w-full flex-col items-center">
-                  <div className="flex w-14 flex-col items-center gap-6 py-4">
+                <div className="flex h-full w-full flex-col items-center justify-start">
+                  <div className="flex w-14 flex-col items-center gap-4 pt-0 pb-3 xl:gap-6 xl:pb-4">
                     {USER_FILTER_BUTTONS.map((filter) => {
                       const isActive = userFilters[filter.key] !== "all";
 
@@ -620,7 +701,7 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
         >
           <svg
             viewBox="0 0 24 24"
-            className="h-6 w-6"
+            className="h-5 w-5 sm:h-6 sm:w-6"
             fill="none"
             stroke="currentColor"
             strokeWidth="1.8"
@@ -645,7 +726,7 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
         />
       )}
 
-      <div className="flex flex-1 flex-col overflow-hidden p-8">
+      <div className="min-w-0 flex flex-1 flex-col overflow-hidden p-8">
         <div className="mb-8 flex shrink-0 flex-col gap-5">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             {isAdmin ? (
@@ -666,7 +747,13 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
                 ))}
               </div>
             ) : (
-              <h1 className="text-3xl font-bold">View our Catalog of Cars</h1>
+              <h1
+                className={`min-h-[2.25rem] text-3xl font-bold transition-opacity duration-300 ${
+                  catalogTitle ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                {catalogTitle ?? " "}
+              </h1>
             )}
 
             <div className="flex items-center gap-3 self-start md:self-auto">
@@ -708,7 +795,7 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
                 <input
                   type="text"
-                  placeholder={showSavedListings ? "Search saved listings..." : "Search cars..."}
+                  placeholder={showSavedListings ? "Search saved listings..." : animatedSearchPlaceholder || " "}
                   value={query}
                   onChange={(event) => {
                     setQuery(event.target.value);
@@ -946,7 +1033,7 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
           />
         )}
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-x-hidden overflow-y-auto">
           {!showingCarsInterface ? (
             usersLoading ? (
               <div className="rounded-3xl border border-zinc-200 bg-white/80 p-8 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-300">
