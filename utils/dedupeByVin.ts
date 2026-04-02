@@ -1,12 +1,24 @@
 import type { Car } from "../types/car";
 
-// TODO: not yet implemented — see __tests__/dedupeByVin.test.ts
-
 export function normalizeVin(vin: unknown): string {
   if (typeof vin !== "string") return "";
-  return vin;
+  const normalized = vin.trim();
+  if (!normalized || normalized === "undefined" || normalized === "null") {
+    return "";
+  }
+  return normalized;
 }
 
 export function dedupeByVin(list: Car[]): Car[] {
-  return [...list];
+  const seen = new Set<string>();
+
+  return list.filter((car) => {
+    const vin = normalizeVin(car.vin);
+    if (!vin || seen.has(vin)) {
+      return false;
+    }
+
+    seen.add(vin);
+    return true;
+  });
 }

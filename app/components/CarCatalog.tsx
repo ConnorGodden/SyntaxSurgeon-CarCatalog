@@ -50,6 +50,7 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
   const isLoggedIn = Boolean(currentUser);
 
   const resetPage = () => setCurrentPage(1);
+  const getCarKey = (car: Car, fallbackIndex: number) => `${normalizeVin(car.vin) || "missing-vin"}-${fallbackIndex}`;
 
   const redirectToLogin = () => {
     router.push("/login");
@@ -550,7 +551,7 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
                 </div>
               ) : (
                 visibleSavedListings.map((car, i) => (
-                  <div key={car.vin || i} className="relative">
+                  <div key={getCarKey(car, i)} className="relative">
                     <button
                       type="button"
                       onClick={() => setActiveCar(car)}
@@ -576,7 +577,7 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
                 {pagedCars.map((car, index) => (
                   <button
                     type="button"
-                    key={car.vin || index}
+                    key={getCarKey(car, (currentPage - 1) * PAGE_SIZE + index)}
                     onClick={() => setActiveCar(car)}
                     className="cursor-pointer rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950"
                   >
