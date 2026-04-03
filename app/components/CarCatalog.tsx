@@ -1030,7 +1030,6 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
               setActiveCar(null);
               setEditCar(car);
             }}
-            isLoggedIn={isLoggedIn}
           />
         )}
 
