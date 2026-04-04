@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createReview } from '../../../../lib/reviews';
-import { getAuthenticatedUser } from '../../../../lib/session';
+import { createReview } from '../../../lib/reviews';
+import { getSessionUser } from '../../../lib/session';
 
 export async function POST(req: NextRequest) {
   try {
-    const currentUser = await getAuthenticatedUser();
+    const currentUser = await getSessionUser();
     if (!currentUser) {
       return NextResponse.json(
         { ok: false, error: 'You must be logged in to write a review.' },
