@@ -10,6 +10,7 @@ import {
   getMissingListingFields,
   isListingIncomplete,
 } from "../../utils/listingCompleteness";
+import { ReviewsSection } from "./ReviewsSection";
 
 function isDataUrl(src: string) {
   return src.startsWith("data:");
@@ -30,12 +31,14 @@ export default function CarDetailsModal({
   onSave,
   isSaved,
   onEdit,
+  isLoggedIn,
 }: {
   car: Car;
   onClose: () => void;
   onSave: (car: Car) => void;
   isSaved: boolean;
   onEdit?: (car: Car) => void;
+  isLoggedIn: boolean;
 }) {
   const src = getCarImageSrc(car);
   const missingFields = getMissingListingFields(car);
@@ -153,6 +156,10 @@ export default function CarDetailsModal({
               <SpecRow label="Sale date" value={formatValueOrMissing(car.saledate)} />
             </div>
           </section>
+        </div>
+
+        <div className="border-t border-zinc-200 px-6 py-6 dark:border-zinc-800">
+          <ReviewsSection vin={car.vin} isLoggedIn={isLoggedIn} />
         </div>
       </div>
     </div>
