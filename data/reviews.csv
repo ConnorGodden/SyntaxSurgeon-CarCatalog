@@ -1,1 +1,3 @@
 id,vin,reviewerId,reviewerEmail,reviewerName,rating,title,comment,createdAt,updatedAt
+review_1775351185898_m7a3j5x7u,2ckdl73f566101612,seed-consumer-001,consumer@carcatalog.local,Casey Consumer,5,fefefee,fwfwfwew,2026-04-05T01:06:25.898Z,
+review_1775419133994_emewdwdyj,1fahp24w98g176305,seed-consumer-001,consumer@carcatalog.local,Casey Consumer,2,Bad Car,I do not like this car lol,2026-04-05T19:58:53.994Z,
