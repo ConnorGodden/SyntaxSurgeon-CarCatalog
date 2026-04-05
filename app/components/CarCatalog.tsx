@@ -20,7 +20,8 @@ import AddListingForm from "./AddListingForm";
 import UserBox from "./UserBox";
 import CarDetailsModal from "./CarDetailsModal";
 
-const SAVED_LISTINGS_KEY = "saved_listings_v1";
+const getSavedListingsKey = (userId: string | null) =>
+  userId ? `saved_listings_v1_${userId}` : "saved_listings_v1_guest";
 const CATALOG_TITLE_SESSION_KEY = "catalog_title_v1";
 const SEARCH_CARS_PLACEHOLDER = "Search cars...";
 const CATALOG_TITLES = [
@@ -102,9 +103,9 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
     router.push("/login");
   };
 
-  const loadSavedFromStorage = (): Car[] => {
+  const loadSavedFromStorage = (userId: string | null): Car[] => {
     try {
-      const raw = localStorage.getItem(SAVED_LISTINGS_KEY);
+      const raw = localStorage.getItem(getSavedListingsKey(userId));
       if (!raw) return [];
       const parsed = JSON.parse(raw) as unknown;
       if (!Array.isArray(parsed)) return [];
@@ -114,9 +115,9 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
     }
   };
 
-  const persistSaved = (next: Car[]) => {
+  const persistSaved = (next: Car[], userId: string | null) => {
     try {
-      localStorage.setItem(SAVED_LISTINGS_KEY, JSON.stringify(dedupeByVin(next)));
+      localStorage.setItem(getSavedListingsKey(userId), JSON.stringify(dedupeByVin(next)));
     } catch {
       // ignore storage failures
     }
@@ -179,9 +180,9 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
   }, [duplicateGroups, duplicateCarIds]);
 
   useEffect(() => {
-    setSavedListings(loadSavedFromStorage());
+    setSavedListings(loadSavedFromStorage(currentUser?.id ?? null));
     void loadListings();
-  }, []);
+  }, [currentUser?.id]);
 
   useEffect(() => {
     try {
@@ -336,13 +337,13 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
     if (!vin) return;
     const next = [{ ...car, vin }, ...savedListings.filter((c) => normalizeVin(c.vin) !== vin)];
     setSavedListings(next);
-    persistSaved(next);
+    persistSaved(next, currentUser?.id ?? null);
   };
 
   const handleRemoveSavedListing = (vin: string) => {
     const next = savedListings.filter((car) => normalizeVin(car.vin) !== vin);
     setSavedListings(next);
-    persistSaved(next);
+    persistSaved(next, currentUser?.id ?? null);
   };
 
   const isCarSaved = (car: Car) => {
