@@ -10,6 +10,7 @@ import {
   getMissingListingFields,
   isListingIncomplete,
 } from "../../utils/listingCompleteness";
+import Link from "next/link";
 import { ReviewsSection } from "./ReviewsSection";
 
 function isDataUrl(src: string) {
@@ -128,16 +129,25 @@ export default function CarDetailsModal({
                   </span>
                 </div>
                 <div className="mt-3 rounded-lg bg-zinc-100 p-2 dark:bg-zinc-900">
-                  <button
-                    type="button"
-                    onClick={() => onSave(car)}
-                    className={`inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold transition ${isSaved
-                        ? "border border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700/60 dark:bg-emerald-900/20 dark:text-emerald-300"
-                        : "bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-                      }`}
-                  >
-                    {isSaved ? "Saved Listing" : "Save Listing"}
-                  </button>
+                  {isLoggedIn ? (
+                    <button
+                      type="button"
+                      onClick={() => onSave(car)}
+                      className={`cursor-pointer inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold transition ${isSaved
+                          ? "border border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700/60 dark:bg-emerald-900/20 dark:text-emerald-300"
+                          : "bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                        }`}
+                    >
+                      {isSaved ? "Saved Listing" : "Save Listing"}
+                    </button>
+                  ) : (
+                    <Link
+                      href="/login"
+                      className="cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                    >
+                      Log in to save this listing
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>

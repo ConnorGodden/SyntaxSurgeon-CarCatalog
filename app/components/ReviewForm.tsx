@@ -68,7 +68,7 @@ export function ReviewForm({ vin, onReviewSubmitted, onCancel }: ReviewFormProps
         key={i}
         type="button"
         onClick={() => setRating(i + 1)}
-        className={`text-2xl focus:outline-none ${
+        className={`cursor-pointer text-2xl focus:outline-none ${
           i < rating ? 'text-amber-400' : 'text-zinc-300 dark:text-zinc-600'
         } hover:text-amber-400 transition-colors`}
       >
@@ -130,14 +130,14 @@ export function ReviewForm({ vin, onReviewSubmitted, onCancel }: ReviewFormProps
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-950 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
+            className="cursor-pointer px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-950 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
           >
             {isSubmitting ? 'Submitting...' : 'Submit Review'}
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-950 font-medium transition-colors"
+            className="cursor-pointer px-4 py-2 bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-950 font-medium transition-colors"
           >
             Cancel
           </button>
