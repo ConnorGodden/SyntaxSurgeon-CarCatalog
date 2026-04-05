@@ -3,6 +3,7 @@ import "server-only";
 import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
+import bcrypt from "bcrypt";
 import { stringifyCsv, parseCsvText } from "../utils/csv";
 import { USER_ROLES, type UserRecord, type UserRole } from "../types/user";
 
@@ -229,11 +230,13 @@ export async function createUser(input: {
     throw new Error("Failed to generate a valid user id.");
   }
 
+  const hashedPassword = await bcrypt.hash(password, 10);
+
   const user: UserRecord = {
     id,
     fullName,
     email,
-    password,
+    password: hashedPassword,
     role: "consumer",
     createdAt: new Date().toISOString(),
     isActive: true,
