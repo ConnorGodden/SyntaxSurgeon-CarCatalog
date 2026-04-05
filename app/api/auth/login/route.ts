@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import bcrypt from "bcrypt";
 import { SESSION_COOKIE_NAME, toSessionUser } from "../../../../lib/session";
 import { readUsers } from "../../../../lib/users";
 
@@ -39,7 +40,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "This account is inactive." }, { status: 403 });
     }
 
-    if (user.password !== password) {
+    let isPasswordValid = false;
+    if (user.password.startsWith("$2b$")) {
+      // Password is hashed
+      isPasswordValid = await bcrypt.compare(password, user.password);
+    } else {
+      // Password is plain text (for backward compatibility)
+      isPasswordValid = user.password === password;
+    }
+
+    if (!isPasswordValid) {
       return NextResponse.json({ ok: false, error: "Incorrect password." }, { status: 401 });
     }
 
