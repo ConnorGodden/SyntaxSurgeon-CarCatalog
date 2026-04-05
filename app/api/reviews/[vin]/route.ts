@@ -3,10 +3,10 @@ import { getReviewsForVin } from '../../../../lib/reviews';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { vin: string } }
+  { params }: { params: Promise<{ vin: string }> }
 ) {
   try {
-    const vin = params.vin;
+    const vin = (await params).vin;
     if (!vin) {
       return NextResponse.json(
         { ok: false, error: 'VIN parameter is required.' },

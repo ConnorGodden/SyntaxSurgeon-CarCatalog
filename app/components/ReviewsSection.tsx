@@ -53,7 +53,7 @@ export function ReviewsSection({ vin, isLoggedIn }: ReviewsSectionProps) {
     Array.from({ length: 5 }, (_, i) => (
       <span
         key={i}
-        className={`text-lg ${i < Math.floor(rating) ? 'text-yellow-400' : 'text-gray-300'}`}
+        className={`text-lg ${i < Math.floor(rating) ? 'text-amber-400' : 'text-zinc-300 dark:text-zinc-600'}`}
       >
         ★
       </span>
@@ -61,9 +61,9 @@ export function ReviewsSection({ vin, isLoggedIn }: ReviewsSectionProps) {
 
   if (loading) {
     return (
-      <div className="py-8 text-center">
+      <div className="py-12 text-center">
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <p className="mt-2 text-gray-600">Loading reviews...</p>
+        <p className="mt-3 text-zinc-600 dark:text-zinc-400">Loading reviews...</p>
       </div>
     );
   }
@@ -72,11 +72,11 @@ export function ReviewsSection({ vin, isLoggedIn }: ReviewsSectionProps) {
     <div className="space-y-6" onClick={(e) => e.stopPropagation()}>
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-xl font-semibold text-gray-900">Reviews</h3>
+          <h3 className="text-2xl font-semibold text-zinc-950 dark:text-zinc-50">Reviews</h3>
           {reviews.length > 0 && (
-            <div className="flex items-center mt-1">
+            <div className="flex items-center mt-2">
               {renderStars(calculateAverageRating())}
-              <span className="ml-2 text-sm text-gray-600">
+              <span className="ml-2 text-sm text-zinc-600 dark:text-zinc-400">
                 {calculateAverageRating()} ({reviews.length} review{reviews.length !== 1 ? 's' : ''})
               </span>
             </div>
@@ -85,7 +85,7 @@ export function ReviewsSection({ vin, isLoggedIn }: ReviewsSectionProps) {
         {isLoggedIn && !showForm && (
           <button
             onClick={() => setShowForm(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 font-medium transition-colors"
           >
             Write a Review
           </button>
@@ -93,7 +93,7 @@ export function ReviewsSection({ vin, isLoggedIn }: ReviewsSectionProps) {
       </div>
 
       {error && (
-        <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">{error}</div>
+        <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950/30 p-3 rounded-lg border border-red-200 dark:border-red-800">{error}</div>
       )}
 
       {showForm && (
@@ -105,13 +105,14 @@ export function ReviewsSection({ vin, isLoggedIn }: ReviewsSectionProps) {
       )}
 
       <div className="space-y-4">
-        {reviews.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <p>No reviews yet. {isLoggedIn ? 'Be the first to write one!' : 'Log in to write a review.'}</p>
+        {reviews.length === 0 && !showForm && (
+          <div className="text-center py-12">
+            <p className="text-zinc-500 dark:text-zinc-400">
+              {isLoggedIn ? 'No reviews yet. Be the first to share your thoughts!' : 'Log in to write the first review.'}
+            </p>
           </div>
-        ) : (
-          reviews.map((review) => <ReviewCard key={review.id} review={review} />)
         )}
+        {reviews.map((review) => <ReviewCard key={review.id} review={review} />)}
       </div>
     </div>
   );
