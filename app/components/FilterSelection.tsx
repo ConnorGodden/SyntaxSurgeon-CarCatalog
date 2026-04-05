@@ -172,7 +172,7 @@ export default function FilterSelection({
                   type="button"
                   title={config.label}
                   onClick={() => onRequestExpand?.(config.key)}
-                  className={`relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950 ${
+                  className={`cursor-pointer relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950 ${
                     isActive
                       ? "border-emerald-300 bg-zinc-50 text-emerald-700 dark:border-emerald-800 dark:bg-zinc-900 dark:text-emerald-300"
                       : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-800"
@@ -208,7 +208,7 @@ export default function FilterSelection({
         {activeFilters.length > 0 && (
           <button
             type="button"
-            className="mt-3 w-full rounded-2xl border border-zinc-200 bg-white/90 px-2 py-2 text-xs font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:border-zinc-800 dark:bg-zinc-950/80 dark:text-zinc-200 dark:hover:bg-zinc-900 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950"
+            className="cursor-pointer mt-3 w-full rounded-2xl border border-zinc-200 bg-white/90 px-2 py-2 text-xs font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:border-zinc-800 dark:bg-zinc-950/80 dark:text-zinc-200 dark:hover:bg-zinc-900 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950"
             onClick={() => onSelectionChange({})}
           >
             Clear all

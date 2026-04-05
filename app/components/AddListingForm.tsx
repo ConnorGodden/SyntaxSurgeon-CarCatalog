@@ -207,14 +207,14 @@ export default function AddListingForm({
                     const form = document.querySelector('form') as HTMLFormElement;
                     if (form) form.requestSubmit();
                   }}
-                  className="rounded-md bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700"
+                  className="cursor-pointer rounded-md bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700"
                 >
                   Proceed Anyway
                 </button>
                 <button
                   type="button"
                   onClick={() => setDuplicateWarning(null)}
-                  className="rounded-md border border-amber-300 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-100 dark:border-amber-600 dark:text-amber-200 dark:hover:bg-amber-900"
+                  className="cursor-pointer rounded-md border border-amber-300 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-100 dark:border-amber-600 dark:text-amber-200 dark:hover:bg-amber-900"
                 >
                   Cancel
                 </button>

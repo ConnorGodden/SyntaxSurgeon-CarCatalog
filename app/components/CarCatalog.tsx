@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Car } from "../../types/car";
 import type { SessionUser, UserRecord } from "../../types/user";
@@ -83,6 +84,8 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
   const [usersLoading, setUsersLoading] = useState(false);
   const [savedListings, setSavedListings] = useState<Car[]>([]);
   const [showSavedListings, setShowSavedListings] = useState(false);
+  const [showGuestMenu, setShowGuestMenu] = useState(false);
+  const guestMenuRef = useRef<HTMLDivElement>(null);
   const [requestedFilterKey, setRequestedFilterKey] = useState<(typeof FILTER_CONFIGS)[number]["key"] | null>(null);
   const [activeAdminView, setActiveAdminView] = useState<"cars" | "users">("cars");
   const [userFilters, setUserFilters] = useState<UserFilterState>({
@@ -183,6 +186,17 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
     setSavedListings(loadSavedFromStorage(currentUser?.id ?? null));
     void loadListings();
   }, [currentUser?.id]);
+
+  useEffect(() => {
+    if (!showGuestMenu) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (guestMenuRef.current && !guestMenuRef.current.contains(e.target as Node)) {
+        setShowGuestMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showGuestMenu]);
 
   useEffect(() => {
     try {
@@ -333,6 +347,7 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
   };
 
   const handleSaveListing = (car: Car) => {
+    if (!isLoggedIn) return;
     const vin = normalizeVin(car.vin);
     if (!vin) return;
     const next = [{ ...car, vin }, ...savedListings.filter((c) => normalizeVin(c.vin) !== vin)];
@@ -570,7 +585,7 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
                             type="button"
                             title={filter.label}
                             onClick={() => setSidebarCollapsed(false)}
-                            className={`relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950 ${
+                            className={`cursor-pointer relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950 ${
                               isActive
                                 ? "border-emerald-300 bg-zinc-50 text-emerald-700 dark:border-emerald-800 dark:bg-zinc-900 dark:text-emerald-300"
                                 : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-800"
@@ -774,20 +789,47 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
                   Add New Listing
                 </button>
               )}
-              <button
-                type="button"
-                onClick={() => {
-                  if (!isLoggedIn) {
-                    redirectToLogin();
-                    return;
-                  }
-                  setShowProfile(true);
-                }}
-                className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-zinc-900 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-                aria-label={isLoggedIn ? "My Profile" : "Log In"}
-              >
-                {getInitials(currentUser?.fullName ?? "Guest User")}
-              </button>
+              <div ref={guestMenuRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!isLoggedIn) {
+                      setShowGuestMenu((prev) => !prev);
+                      return;
+                    }
+                    setShowProfile(true);
+                  }}
+                  className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-zinc-900 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+                  aria-label={isLoggedIn ? "My Profile" : "Account"}
+                  aria-expanded={!isLoggedIn ? showGuestMenu : undefined}
+                >
+                  {getInitials(currentUser?.fullName ?? "Guest User")}
+                </button>
+
+                {!isLoggedIn && showGuestMenu && (
+                  <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-48 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
+                    <div className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">Account</p>
+                    </div>
+                    <div className="p-2 flex flex-col gap-1">
+                      <Link
+                        href="/login"
+                        onClick={() => setShowGuestMenu(false)}
+                        className="cursor-pointer flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-900 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-800 transition"
+                      >
+                        Log In
+                      </Link>
+                      <Link
+                        href="/login?mode=signup"
+                        onClick={() => setShowGuestMenu(false)}
+                        className="cursor-pointer flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-900 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-800 transition"
+                      >
+                        Sign Up
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { SessionUser } from "../../types/user";
 
 type Mode = "login" | "signup";
@@ -22,7 +23,8 @@ function formatRole(role: SessionUser["role"]): string {
 
 export default function AuthPage({ initialUser }: { initialUser: SessionUser | null }) {
   const router = useRouter();
-  const [mode, setMode] = useState<Mode>("login");
+  const searchParams = useSearchParams();
+  const [mode, setMode] = useState<Mode>(searchParams.get("mode") === "signup" ? "signup" : "login");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
@@ -72,7 +74,18 @@ export default function AuthPage({ initialUser }: { initialUser: SessionUser | n
 
   return (
     <main className="min-h-screen bg-zinc-100/70 px-6 py-10 dark:bg-zinc-950">
-      <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-6xl items-center justify-center">
+      <div className="mx-auto max-w-6xl">
+        <Link
+          href="/catalog"
+          className="cursor-pointer inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800 transition"
+        >
+          <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+            <path fillRule="evenodd" d="M17 10a.75.75 0 0 1-.75.75H5.612l4.158 3.96a.75.75 0 1 1-1.04 1.08l-5.5-5.25a.75.75 0 0 1 0-1.08l5.5-5.25a.75.75 0 1 1 1.04 1.08L5.612 9.25H16.25A.75.75 0 0 1 17 10Z" clipRule="evenodd" />
+          </svg>
+          Back to Catalogue
+        </Link>
+      </div>
+      <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-6xl items-center justify-center">
         <div className="grid w-full gap-8 overflow-hidden rounded-[2rem] border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 lg:grid-cols-[1.1fr_0.9fr]">
           <section className="flex flex-col justify-start bg-zinc-900 px-8 py-12 text-white dark:bg-zinc-950">
             <div className="mx-auto w-full max-w-xl pt-6">
@@ -252,3 +265,4 @@ export default function AuthPage({ initialUser }: { initialUser: SessionUser | n
     </main>
   );
 }
+
