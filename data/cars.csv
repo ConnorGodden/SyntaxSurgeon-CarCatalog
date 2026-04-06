@@ -1,5 +1,4 @@
 year,make,model,trim,body,transmission,vin,state,condition,odometer,color,interior,seller,mmr,sellingprice,saledate,deal_rating,ownerId,ownerEmail,ownerRole
-2020,Toyota,Camry,,,,83217803213,,excellent,50000,Black,,Alex Admin,0,250000,,Fair Market,seed-admin-001,admin@carcatalog.local,admin
 2006,PONTIAC,Torrent,Base,suv,automatic,2ckdl73f566101612,nj,33,106225,burgundy,beige,wells fargo dealer services,4950,5400,Wed Jan 07 2015 09:30:00 GMT-0800 (PST),Fair Market,seed-consumer-001,consumer@carcatalog.local,consumer
 2011,FORD,Escape,XLT,suv,automatic,1fmcu9dg7bkc44017,oh,33,49718,black,black,u s auto importing & sales,13800,12500,Tue Mar 10 2015 02:30:00 GMT-0700 (PDT),Good Price,seed-dealer-001,dealer@carcatalog.local,dealer
 2008,FORD,Taurus,SEL,sedan,automatic,1fahp24w98g176305,oh,1,119604,silver,tan,santander consumer,4575,1600,Tue Feb 17 2015 05:00:00 GMT-0800 (PST),Great Deal,seed-consumer-001,consumer@carcatalog.local,consumer

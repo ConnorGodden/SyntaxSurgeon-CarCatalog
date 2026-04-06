@@ -11,7 +11,7 @@ const car = (vin: string) => mockCar({ vin });
 
 describe("dedupeByVin — real dataset", () => {
   it("removes the duplicate 2006 PONTIAC Torrent (VIN 2ckdl73f566101612) present in cars.csv", () => {
-    const csv = readFileSync(join(process.cwd(), "public/cars.csv"), "utf-8");
+    const csv = readFileSync(join(process.cwd(), "data/cars.csv"), "utf-8");
     const cars = parseCsv(csv);
 
     const vin = "2ckdl73f566101612";

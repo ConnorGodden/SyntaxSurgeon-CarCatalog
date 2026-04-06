@@ -20,6 +20,9 @@ export function mockCar(overrides: Partial<Car> = {}): Car {
     sellingprice: 8500,
     saledate: "Tue Jan 06 2015 03:00:00 GMT-0800 (PST)",
     deal_rating: "Good Price",
+    ownerId: "seed-consumer-001",
+    ownerEmail: "consumer@carcatalog.local",
+    ownerRole: "consumer",
     ...overrides,
   };
 }

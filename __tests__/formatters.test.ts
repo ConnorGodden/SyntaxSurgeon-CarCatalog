@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   getInitials,
+  formatRole,
   labelFromSnakeCase,
   formatCondition,
   formatMoney,
@@ -36,6 +37,22 @@ describe("getInitials", () => {
 
   it("collapses multiple spaces between words", () => {
     expect(getInitials("Jane   Doe")).toBe("JD");
+  });
+});
+
+// ─── formatRole ──────────────────────────────────────────────────────────────
+
+describe("formatRole", () => {
+  it("capitalises 'consumer'", () => {
+    expect(formatRole("consumer")).toBe("Consumer");
+  });
+
+  it("capitalises 'dealer'", () => {
+    expect(formatRole("dealer")).toBe("Dealer");
+  });
+
+  it("capitalises 'admin'", () => {
+    expect(formatRole("admin")).toBe("Admin");
   });
 });
 
