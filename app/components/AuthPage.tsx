@@ -5,21 +5,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { SessionUser } from "../../types/user";
+import { formatRole, getInitials } from "../../utils/formatters";
 
 type Mode = "login" | "signup";
-
-function getInitials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("") || "CC";
-}
-
-function formatRole(role: SessionUser["role"]): string {
-  return role.charAt(0).toUpperCase() + role.slice(1);
-}
 
 export default function AuthPage({ initialUser }: { initialUser: SessionUser | null }) {
   const router = useRouter();

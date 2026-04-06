@@ -805,7 +805,7 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
               </div>
             ) : (
               <h1
-                className={`min-h-[2.25rem] text-3xl font-bold transition-opacity duration-300 ${
+                className={`min-h-9 text-3xl font-bold transition-opacity duration-300 ${
                   catalogTitle ? "opacity-100" : "opacity-0"
                 }`}
               >
@@ -814,15 +814,11 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
             )}
 
             <div className="flex items-center gap-3 self-start md:self-auto">
-              {showingCarsInterface && (
+              {showingCarsInterface && isLoggedIn && (
                 <button
                   type="button"
                   onClick={() => {
                     setSaveError(null);
-                    if (!isLoggedIn) {
-                      redirectToLogin();
-                      return;
-                    }
                     setShowAddForm(true);
                   }}
                   className="cursor-pointer rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
@@ -840,11 +836,21 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
                     }
                     setShowProfile(true);
                   }}
-                  className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-zinc-900 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+                  className={`flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-sm font-semibold transition ${
+                    isLoggedIn
+                      ? "bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+                      : "border-2 border-dashed border-zinc-400 bg-zinc-100 text-zinc-500 hover:border-zinc-500 hover:bg-zinc-200 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:border-zinc-500 dark:hover:bg-zinc-700"
+                  }`}
                   aria-label={isLoggedIn ? "My Profile" : "Account"}
                   aria-expanded={!isLoggedIn ? showGuestMenu : undefined}
                 >
-                  {getInitials(currentUser?.fullName ?? "Guest User")}
+                  {isLoggedIn ? (
+                    getInitials(currentUser!.fullName)
+                  ) : (
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5" aria-hidden="true">
+                      <path d="M10 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.465 14.493a1.23 1.23 0 0 0 .41 1.412A9.957 9.957 0 0 0 10 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 0 0-13.074.003Z" />
+                    </svg>
+                  )}
                 </button>
 
                 {!isLoggedIn && showGuestMenu && (
@@ -1161,11 +1167,11 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
             onClose={() => setActiveCar(null)}
             onSave={handleSaveListing}
             isSaved={isCarSaved(activeCar)}
-            onEdit={(car) => {
+            onEdit={isAdmin ? (car) => {
               setSaveError(null);
               setActiveCar(null);
               setEditCar(car);
-            }}
+            } : undefined}
             isLoggedIn={isLoggedIn}
           />
         )}

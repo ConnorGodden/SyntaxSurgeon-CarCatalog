@@ -2,3 +2,4 @@ id,vin,reviewerId,reviewerEmail,reviewerName,rating,title,comment,createdAt,upda
 review_1775351185898_m7a3j5x7u,2ckdl73f566101612,seed-consumer-001,consumer@carcatalog.local,Casey Consumer,5,fefefee,fwfwfwew,2026-04-05T01:06:25.898Z,
 review_1775419133994_emewdwdyj,1fahp24w98g176305,seed-consumer-001,consumer@carcatalog.local,Casey Consumer,2,Bad Car,I do not like this car lol,2026-04-05T19:58:53.994Z,
 review_1775427484627_22jxs3qhj,1fmcu9dg7bkc44017,user-49e85300-9d4b-4568-b5aa-be94cceaed5d,vincentklwong@hotmail.com,Vincent,5,Test,Hello,2026-04-05T22:18:04.627Z,
+review_1775433297400_fdiduqri9,wbaph7g51anm51988,user-49e85300-9d4b-4568-b5aa-be94cceaed5d,vincentklwong@hotmail.com,Vincent,2,Vincent's Review,the car was alright.,2026-04-05T23:54:57.400Z,

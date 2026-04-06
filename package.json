@@ -1,5 +1,5 @@
 {
-  "name": "my-app",
+  "name": "car-catalog",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -17,7 +17,6 @@
     "react-dom": "19.2.3"
   },
   "devDependencies": {
-    "@mermaid-js/mermaid-cli": "^11.12.0",
     "@tailwindcss/postcss": "^4",
     "@types/bcrypt": "^6.0.0",
     "@types/node": "^20",

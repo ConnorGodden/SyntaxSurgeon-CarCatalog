@@ -1,4 +1,5 @@
 import type { Car } from "../types/car";
+import type { UserRole } from "../types/user";
 
 export function getInitials(name: string): string {
   return (
@@ -9,6 +10,10 @@ export function getInitials(name: string): string {
       .map((part) => part[0]?.toUpperCase() ?? "")
       .join("") || "CC"
   );
+}
+
+export function formatRole(role: UserRole): string {
+  return role.charAt(0).toUpperCase() + role.slice(1);
 }
 
 export function labelFromSnakeCase(value: string): string {

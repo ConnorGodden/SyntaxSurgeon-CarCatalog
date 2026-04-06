@@ -1,95 +1,85 @@
-import { promises as fs } from 'fs';
-import path from 'path';
-import { Review } from '../types/review';
-import { SessionUser } from '../types/user';
+import "server-only";
 
-const REVIEWS_CSV_PATH = path.join(process.cwd(), 'data', 'reviews.csv');
+import { promises as fs } from "fs";
+import path from "path";
+import { parseCsvText, stringifyCsv } from "../utils/csv";
+import type { Review } from "../types/review";
+import type { SessionUser } from "../types/user";
+
+const REVIEWS_CSV_PATH = path.join(process.cwd(), "data", "reviews.csv");
 
 const REVIEW_HEADERS = [
-  'id',
-  'vin',
-  'reviewerId',
-  'reviewerEmail',
-  'reviewerName',
-  'rating',
-  'title',
-  'comment',
-  'createdAt',
-  'updatedAt',
+  "id",
+  "vin",
+  "reviewerId",
+  "reviewerEmail",
+  "reviewerName",
+  "rating",
+  "title",
+  "comment",
+  "createdAt",
+  "updatedAt",
 ] as const;
 
-function mapReviewToRow(review: Review): string[] {
-  return [
-    review.id,
-    review.vin,
-    review.reviewerId,
-    review.reviewerEmail,
-    review.reviewerName,
-    review.rating.toString(),
-    review.title,
-    review.comment,
-    review.createdAt,
-    review.updatedAt || '',
-  ];
-}
+type ReviewRecord = Record<(typeof REVIEW_HEADERS)[number], string>;
 
-function mapRowToReview(row: string[]): Review | null {
-  if (row.length !== REVIEW_HEADERS.length) {
-    return null;
-  }
-
-  const [
-    id,
-    vin,
-    reviewerId,
-    reviewerEmail,
-    reviewerName,
-    ratingStr,
-    title,
-    comment,
-    createdAt,
-    updatedAt,
-  ] = row;
-
-  const rating = parseInt(ratingStr, 10);
-  if (isNaN(rating) || rating < 1 || rating > 5) {
-    return null;
-  }
+function mapRowToReview(row: Record<string, string>): Review | null {
+  const rating = parseInt(row.rating, 10);
+  if (isNaN(rating) || rating < 1 || rating > 5) return null;
+  if (!row.id || !row.vin || !row.reviewerId) return null;
 
   return {
-    id,
-    vin,
-    reviewerId,
-    reviewerEmail,
-    reviewerName,
+    id: row.id,
+    vin: row.vin,
+    reviewerId: row.reviewerId,
+    reviewerEmail: row.reviewerEmail,
+    reviewerName: row.reviewerName,
     rating,
-    title,
-    comment,
-    createdAt,
-    updatedAt: updatedAt || undefined,
+    title: row.title,
+    comment: row.comment,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt || undefined,
   };
+}
+
+function mapReviewToRow(review: Review): ReviewRecord {
+  return {
+    id: review.id,
+    vin: review.vin,
+    reviewerId: review.reviewerId,
+    reviewerEmail: review.reviewerEmail,
+    reviewerName: review.reviewerName,
+    rating: review.rating.toString(),
+    title: review.title,
+    comment: review.comment,
+    createdAt: review.createdAt,
+    updatedAt: review.updatedAt ?? "",
+  };
+}
+
+function generateReviewId(): string {
+  return `review_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 }
 
 export async function readReviews(): Promise<{ reviews: Review[]; malformedRows: number }> {
   try {
-    const csvContent = await fs.readFile(REVIEWS_CSV_PATH, 'utf-8');
-    const lines = csvContent.trim().split('\n');
+    const raw = await fs.readFile(REVIEWS_CSV_PATH, "utf-8");
+    const { rows, malformedRowCount } = parseCsvText(raw);
     const reviews: Review[] = [];
-    let malformedRows = 0;
+    let malformedRows = malformedRowCount;
 
-    for (let i = 1; i < lines.length; i++) {
-      const row = lines[i].split(',').map((cell) => cell.trim());
+    for (const row of rows) {
       const review = mapRowToReview(row);
       if (review) {
         reviews.push(review);
       } else {
-        malformedRows++;
+        malformedRows += 1;
       }
     }
 
     return { reviews, malformedRows };
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       return { reviews: [], malformedRows: 0 };
     }
     throw error;
@@ -97,10 +87,6 @@ export async function readReviews(): Promise<{ reviews: Review[]; malformedRows:
 }
 
 export async function writeReviews(reviews: Review[]): Promise<void> {
-  const header = REVIEW_HEADERS.join(',');
-  const rows = reviews.map(mapReviewToRow).map((row) => row.join(','));
-  const csvContent = [header, ...rows].join('\n') + '\n';
-
   const dataDir = path.dirname(REVIEWS_CSV_PATH);
   try {
     await fs.access(dataDir);
@@ -108,25 +94,22 @@ export async function writeReviews(reviews: Review[]): Promise<void> {
     await fs.mkdir(dataDir, { recursive: true });
   }
 
-  await fs.writeFile(REVIEWS_CSV_PATH, csvContent, 'utf-8');
-}
-
-function generateReviewId(): string {
-  return `review_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const content = stringifyCsv([...REVIEW_HEADERS], reviews.map(mapReviewToRow));
+  await fs.writeFile(REVIEWS_CSV_PATH, `${content}\n`, "utf-8");
 }
 
 export async function createReview(
-  reviewData: Omit<Review, 'id' | 'createdAt' | 'reviewerId' | 'reviewerEmail' | 'reviewerName'>,
+  reviewData: Omit<Review, "id" | "createdAt" | "reviewerId" | "reviewerEmail" | "reviewerName">,
   currentUser: SessionUser
 ): Promise<Review> {
   const { reviews } = await readReviews();
 
   if (reviewData.rating < 1 || reviewData.rating > 5) {
-    throw new Error('Rating must be between 1 and 5 stars.');
+    throw new Error("Rating must be between 1 and 5 stars.");
   }
 
   if (!reviewData.title?.trim() || !reviewData.comment?.trim()) {
-    throw new Error('Title and comment are required.');
+    throw new Error("Title and comment are required.");
   }
 
   const newReview: Review = {
@@ -151,5 +134,5 @@ export async function getReviewsForVin(vin: string): Promise<Review[]> {
 
 export async function getReviewById(id: string): Promise<Review | null> {
   const { reviews } = await readReviews();
-  return reviews.find((review) => review.id === id) || null;
+  return reviews.find((review) => review.id === id) ?? null;
 }

@@ -7,7 +7,7 @@ import type { Car } from "../types/car";
 import type { SessionUser } from "../types/user";
 import { getSeededListingOwners } from "./users";
 
-const LISTINGS_CSV_PATH = path.join(process.cwd(), "public", "cars.csv");
+const LISTINGS_CSV_PATH = path.join(process.cwd(), "data", "cars.csv");
 
 export const LISTING_HEADERS = [
   "year",

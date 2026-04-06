@@ -1,13 +1,8 @@
 'use client';
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { SessionUser } from "../../types/user";
-import { getInitials } from "../../utils/formatters";
-
-function formatRole(role: SessionUser["role"]): string {
-  return role.charAt(0).toUpperCase() + role.slice(1);
-}
+import { formatRole, getInitials } from "../../utils/formatters";
 
 export default function UserBox({
   user,
