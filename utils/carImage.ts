@@ -30,8 +30,15 @@ const LOCAL_IMAGES: Record<string, string> = {
   "2014_nissan_versanote":        "/cars/2014_nissan_versanote.webp",
 };
 
+function toImagenSlug(str: string): string {
+  return str.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+}
+
 export function getCarImageSrc(car: Car): string {
   if (car.image?.trim()) return car.image.trim();
   const key = `${car.year}_${car.make.toLowerCase()}_${car.model.toLowerCase().replace(/\s+/g, "")}`;
-  return LOCAL_IMAGES[key] ?? "/cars/placeholder.svg";
+  if (LOCAL_IMAGES[key]) return LOCAL_IMAGES[key];
+  const make = toImagenSlug(car.make);
+  const model = toImagenSlug(car.model);
+  return `https://cdn.imagin.studio/getimage?customer=img&make=${make}&modelFamily=${model}&modelYear=${car.year}`;
 }

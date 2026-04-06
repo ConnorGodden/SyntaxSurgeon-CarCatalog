@@ -185,9 +185,13 @@ describe("getCarImageSrc", () => {
     expect(getCarImageSrc(car)).toBe("/cars/2014_chrysler_townandcountry.jpg");
   });
 
-  it("returns the placeholder for a car with no matching local image", () => {
+  it("returns an imagin.studio URL for a car with no matching local image", () => {
     const car = mockCar({ year: 1999, make: "UNKNOWN", model: "Ghost", image: undefined });
-    expect(getCarImageSrc(car)).toBe("/cars/placeholder.svg");
+    const src = getCarImageSrc(car);
+    expect(src).toContain("cdn.imagin.studio");
+    expect(src).toContain("make=unknown");
+    expect(src).toContain("modelFamily=ghost");
+    expect(src).toContain("modelYear=1999");
   });
 
   it("returns correct path for a .webp image (e.g. 2014 BMW X6)", () => {
