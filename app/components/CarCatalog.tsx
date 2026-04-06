@@ -1021,7 +1021,7 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
               )}
 
               {showSavedListings && savedListings.length > 0 && (
-                <div className="rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-white to-sky-50 px-4 py-4 shadow-sm dark:border-emerald-900/40 dark:from-emerald-950/20 dark:via-zinc-900/80 dark:to-sky-950/20">
+                <div className="rounded-2xl border border-emerald-200 bg-linear-to-r from-emerald-50 via-white to-sky-50 px-4 py-4 shadow-sm dark:border-emerald-900/40 dark:from-emerald-950/20 dark:via-zinc-900/80 dark:to-sky-950/20">
                   <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700 dark:text-emerald-300">
