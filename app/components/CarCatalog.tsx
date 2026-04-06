@@ -19,6 +19,7 @@ import FilterSelection, {
 } from "./FilterSelection";
 import AddListingForm from "./AddListingForm";
 import UserBox from "./UserBox";
+import CarCompareModal from "./CarCompareModal";
 import CarDetailsModal from "./CarDetailsModal";
 
 const getSavedListingsKey = (userId: string | null) =>
@@ -84,6 +85,8 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
   const [usersLoading, setUsersLoading] = useState(false);
   const [savedListings, setSavedListings] = useState<Car[]>([]);
   const [showSavedListings, setShowSavedListings] = useState(false);
+  const [compareSelection, setCompareSelection] = useState<string[]>([]);
+  const [showCompareModal, setShowCompareModal] = useState(false);
   const [showGuestMenu, setShowGuestMenu] = useState(false);
   const guestMenuRef = useRef<HTMLDivElement>(null);
   const [requestedFilterKey, setRequestedFilterKey] = useState<(typeof FILTER_CONFIGS)[number]["key"] | null>(null);
@@ -184,6 +187,8 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
 
   useEffect(() => {
     setSavedListings(loadSavedFromStorage(currentUser?.id ?? null));
+    setCompareSelection([]);
+    setShowCompareModal(false);
     void loadListings();
   }, [currentUser?.id]);
 
@@ -269,10 +274,21 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
     setActiveCar(null);
     setEditCar(null);
     setShowSavedListings(false);
+    setCompareSelection([]);
+    setShowCompareModal(false);
     setSaveError(null);
     setQuery("");
     setCurrentPage(1);
   }, [showingCarsInterface]);
+
+  useEffect(() => {
+    if (showSavedListings) {
+      return;
+    }
+
+    setCompareSelection([]);
+    setShowCompareModal(false);
+  }, [showSavedListings]);
 
   useEffect(() => {
     if (!isAdmin || activeAdminView !== "users") {
@@ -358,7 +374,25 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
   const handleRemoveSavedListing = (vin: string) => {
     const next = savedListings.filter((car) => normalizeVin(car.vin) !== vin);
     setSavedListings(next);
+    setCompareSelection((current) => current.filter((selectedVin) => selectedVin !== vin));
     persistSaved(next, currentUser?.id ?? null);
+  };
+
+  const toggleCompareSelection = (car: Car) => {
+    const vin = normalizeVin(car.vin);
+    if (!vin) return;
+
+    setCompareSelection((current) => {
+      if (current.includes(vin)) {
+        return current.filter((selectedVin) => selectedVin !== vin);
+      }
+
+      if (current.length >= 2) {
+        return [current[1], vin];
+      }
+
+      return [...current, vin];
+    });
   };
 
   const isCarSaved = (car: Car) => {
@@ -392,6 +426,13 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
       return haystack.includes(q);
     });
   }, [savedListings, selections, query]);
+
+  const selectedCompareCars = useMemo(() => {
+    const savedByVin = new Map(savedListings.map((car) => [normalizeVin(car.vin), car] as const));
+    return compareSelection
+      .map((vin) => savedByVin.get(vin))
+      .filter((car): car is Car => Boolean(car));
+  }, [compareSelection, savedListings]);
 
   const listingCountByUser = useMemo(() => {
     const counts = new Map<string, number>();
@@ -863,6 +904,36 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
                     Saved ({savedListings.length})
                   </button>
 
+                  {showSavedListings && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (selectedCompareCars.length === 2) {
+                            setShowCompareModal(true);
+                          }
+                        }}
+                        disabled={selectedCompareCars.length !== 2}
+                        className={`cursor-pointer rounded-lg px-3 py-2 text-sm font-medium transition ${
+                          selectedCompareCars.length === 2
+                            ? "bg-emerald-600 text-white hover:bg-emerald-500"
+                            : "cursor-not-allowed border border-zinc-200 bg-zinc-100 text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-500"
+                        }`}
+                      >
+                        Compare {selectedCompareCars.length}/2
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setCompareSelection([])}
+                        disabled={compareSelection.length === 0}
+                        className="cursor-pointer rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+                      >
+                        Clear
+                      </button>
+                    </>
+                  )}
+
                   <label htmlFor="sort" className="sr-only">
                     Sort results
                   </label>
@@ -939,6 +1010,28 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
                         </span>
                       </button>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {showSavedListings && savedListings.length > 0 && (
+                <div className="rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-white to-sky-50 px-4 py-4 shadow-sm dark:border-emerald-900/40 dark:from-emerald-950/20 dark:via-zinc-900/80 dark:to-sky-950/20">
+                  <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700 dark:text-emerald-300">
+                        Compare Saved Cars
+                      </p>
+                      <p className="mt-1 text-sm text-zinc-700 dark:text-zinc-200">
+                        Select exactly two saved cars to open a side-by-side comparison with highlighted winners.
+                      </p>
+                    </div>
+                    <p className="text-sm font-medium text-zinc-600 dark:text-zinc-300">
+                      {compareSelection.length === 0
+                        ? "Pick your first car"
+                        : compareSelection.length === 1
+                          ? "Pick one more car"
+                          : "Ready to compare"}
+                    </p>
                   </div>
                 </div>
               )}
@@ -1077,6 +1170,14 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
           />
         )}
 
+        {showingCarsInterface && showCompareModal && selectedCompareCars.length === 2 && (
+          <CarCompareModal
+            leftCar={selectedCompareCars[0]}
+            rightCar={selectedCompareCars[1]}
+            onClose={() => setShowCompareModal(false)}
+          />
+        )}
+
         <div className="flex-1 overflow-x-hidden overflow-y-auto">
           {!showingCarsInterface ? (
             usersLoading ? (
@@ -1206,13 +1307,35 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
                 </div>
               ) : (
                 visibleSavedListings.map((car, i) => (
-                  <div key={getCarKey(car, i)} className="relative">
+                  <div
+                    key={getCarKey(car, i)}
+                    className={`relative rounded-2xl transition ${
+                      compareSelection.includes(normalizeVin(car.vin))
+                        ? "bg-emerald-50/70 dark:bg-emerald-950/20"
+                        : ""
+                    }`}
+                  >
                     <button
                       type="button"
                       onClick={() => setActiveCar(car)}
                       className="w-full cursor-pointer rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950"
                     >
                       <CarCard car={car} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        toggleCompareSelection(car);
+                      }}
+                      className={`absolute left-3 top-3 inline-flex cursor-pointer items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold shadow-sm transition ${
+                        compareSelection.includes(normalizeVin(car.vin))
+                          ? "border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-700/60 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:bg-emerald-950/60"
+                          : "border border-zinc-200 bg-white/95 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900/95 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                      }`}
+                      aria-pressed={compareSelection.includes(normalizeVin(car.vin))}
+                    >
+                      {compareSelection.includes(normalizeVin(car.vin)) ? "Selected" : "Select"}
                     </button>
                     <button
                       type="button"
