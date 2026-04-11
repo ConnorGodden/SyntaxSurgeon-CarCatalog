@@ -21,6 +21,7 @@ import AddListingForm from "./AddListingForm";
 import UserBox from "./UserBox";
 import CarCompareModal from "./CarCompareModal";
 import CarDetailsModal from "./CarDetailsModal";
+import InfoTooltip from "./InfoTooltip";
 
 const getSavedListingsKey = (userId: string | null) =>
   userId ? `saved_listings_v1_${userId}` : "saved_listings_v1_guest";
@@ -814,6 +815,12 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
             )}
 
             <div className="flex items-center gap-3 self-start md:self-auto">
+              <Link
+                href="/help"
+                className="inline-flex items-center rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+              >
+                Help
+              </Link>
               {showingCarsInterface && isLoggedIn && (
                 <button
                   type="button"
@@ -882,6 +889,14 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
 
           {showingCarsInterface ? (
             <>
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500">
+                <span>Browse Controls</span>
+                <InfoTooltip
+                  text="Search and filter together for best results. Use Saved mode to manage favorites and compare two cars side by side."
+                  label="Browse controls help"
+                  align="left"
+                />
+              </div>
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
                 <input
                   type="text"
@@ -1024,9 +1039,16 @@ export default function CarCatalog({ currentUser }: { currentUser: SessionUser |
                 <div className="rounded-2xl border border-emerald-200 bg-linear-to-r from-emerald-50 via-white to-sky-50 px-4 py-4 shadow-sm dark:border-emerald-900/40 dark:from-emerald-950/20 dark:via-zinc-900/80 dark:to-sky-950/20">
                   <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700 dark:text-emerald-300">
-                        Compare Saved Cars
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700 dark:text-emerald-300">
+                          Compare Saved Cars
+                        </p>
+                        <InfoTooltip
+                          text="Comparison works only in Saved mode. Select two saved cars, then click Compare to see side-by-side winners."
+                          label="How compare works"
+                          align="left"
+                        />
+                      </div>
                       <p className="mt-1 text-sm text-zinc-700 dark:text-zinc-200">
                         Select exactly two saved cars to open a side-by-side comparison with highlighted winners.
                       </p>
